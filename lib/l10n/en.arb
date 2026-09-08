@@ -39,6 +39,8 @@
   "exportAllGenericError": "Error: Something went wrong.",
   "unsavedChangesTitle": "Unsaved Changes!",
   "discardChangesConfirm": "Are you sure you want to discard all changes?",
+  "workoutIncompleteTitle": "Workout Incomplete!",
+  "exitWorkoutConfirm": "Current workout progress will be lost. Are you sure you want to exit?",
   "confirmDeleteWorkout": "Are you sure you want to delete {name} ({count} exercises)?",
   "@confirmDeleteWorkout": {
     "placeholders": {
