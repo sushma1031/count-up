@@ -113,9 +113,9 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
                                     'duration': int.parse(_data[i][1])
                                   });
                                 }
-                                if (toModify.length > 0)
-                                  await widget.modifyExercise(widget.workoutKey, toModify);
                               }
+                              if (toModify.length > 0)
+                                await widget.modifyExercise(widget.workoutKey, toModify);
 
                               widget.returnToStaticList();
                             },
