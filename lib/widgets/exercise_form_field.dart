@@ -66,10 +66,13 @@ class _ExerciseInputState extends State<ExerciseInput> {
 }
 
 class ExerciseFormField extends FormField<List<String>> {
+  final ValueChanged<List<String>>? onChanged;
+
   ExerciseFormField({
     Key? key,
     required List<String> initialValue,
-    required FormFieldSetter<List<String>> onSaved,
+    FormFieldSetter<List<String>>? onSaved,
+    this.onChanged,
     required FormFieldValidator<List<String>> validator,
   }) : super(
           key: key,
@@ -101,6 +104,14 @@ class _ExerciseFormFieldState extends FormFieldState<List<String>> {
     _durationController = TextEditingController(text: _ex[1]);
     _nameController.addListener(_nameControllerChanged);
     _durationController.addListener(_durationControllerChanged);
+  }
+
+  @override
+  void didChange(List<String>? value) {
+    super.didChange(value);
+    if (value != null) {
+      (widget as ExerciseFormField).onChanged?.call(List<String>.of(value));
+    }
   }
 
   @override

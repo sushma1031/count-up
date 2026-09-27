@@ -4,6 +4,7 @@ import 'package:count_up/screens/edit_exercises_screen.dart';
 import 'package:count_up/services/storage_service.dart';
 import 'package:count_up/services/workout_backup_service.dart';
 import 'package:count_up/utils/errors.dart';
+import 'package:count_up/utils/workout_constants.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/widgets/icon_text_item.dart';
 import 'package:flutter/material.dart';
@@ -131,10 +132,16 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         onSelected: (value) async {
                           switch (value) {
                             case WorkoutAction.addExercise:
+                              if (_w.exercises.length >= maxExercisesPerWorkout) {
+                                _showErrorSnackbar(
+                                    l10n.workoutExerciseLimitError(maxExercisesPerWorkout));
+                                break;
+                              }
                               setState(() {
                                 _currentView = WorkoutView.add;
                                 _child = ExercisesForm(
                                   workoutKey: widget.workoutKey,
+                                  currentExerciseCount: _w.exercises.length,
                                   addWorkoutExercises: widget.db.addWorkoutExercises,
                                   returnToStaticList: _returnToStaticList,
                                   onPop: _onPop,
@@ -180,9 +187,12 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         },
                         itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
                               PopupMenuItem<WorkoutAction>(
-                                child: IconTextItem(
-                                  icon: Icons.add,
-                                  text: l10n.addExercisesTitle,
+                                child: Opacity(
+                                  opacity: _w.exercises.length >= maxExercisesPerWorkout ? 0.38 : 1,
+                                  child: IconTextItem(
+                                    icon: Icons.add,
+                                    text: l10n.addExercisesTitle,
+                                  ),
                                 ),
                                 value: WorkoutAction.addExercise,
                               ),

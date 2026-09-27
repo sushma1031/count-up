@@ -25,6 +25,14 @@
   "importErrorFormat": "Invalid file format.",
   "importErrorType": "Workout structure is incompatible or malformed.",
   "importErrorUnknown": "Something went wrong while importing.",
+  "workoutExerciseLimitError": "Exercises limit reached: {limit}",
+  "@workoutExerciseLimitError": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "errorWithMessage": "Error: {message}",
   "@errorWithMessage": {
     "placeholders": {

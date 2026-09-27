@@ -8,6 +8,7 @@ import 'package:count_up/models/workout.dart';
 import 'package:count_up/utils/errors.dart';
 import 'package:count_up/utils/format.dart';
 import 'package:count_up/utils/serialise_workout.dart';
+import 'package:count_up/utils/workout_constants.dart';
 import 'storage_service.dart';
 
 class WorkoutBackupService {
@@ -25,9 +26,17 @@ class WorkoutBackupService {
     }
     File file = File(result.files.single.path!);
     String workoutJson = await file.readAsString();
+    return importWorkoutJson(workoutJson);
+  }
+
+  Future<ImportError?> importWorkoutJson(String workoutJson) async {
     try {
       var workout = importFromJson(workoutJson);
-      workout.name = getUniqueWorkoutName(db.getAllWorkoutNames(), workout.name);
+      if (workout.exercises.length > maxExercisesPerWorkout) {
+        return ImportError.exerciseLimit;
+      }
+      workout.name =
+          getUniqueWorkoutName(db.getAllWorkoutNames(), workout.name);
       await db.addWorkout(workout);
       return null;
     } on FormatException catch (e) {

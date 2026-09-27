@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
+import 'package:count_up/utils/workout_constants.dart';
 
 enum AppError {
   dbInitFailed,
@@ -18,7 +19,7 @@ String errorMessageFor(BuildContext context, AppError error) {
 
 enum ExportError { empty, fs, platform, unknown }
 
-enum ImportError { format, type, unknown }
+enum ImportError { format, type, exerciseLimit, unknown }
 
 String importErrorMessage(BuildContext context, ImportError error) {
   final l10n = AppLocalizations.of(context);
@@ -27,6 +28,8 @@ String importErrorMessage(BuildContext context, ImportError error) {
       return l10n.importErrorFormat;
     case ImportError.type:
       return l10n.importErrorType;
+    case ImportError.exerciseLimit:
+      return l10n.workoutExerciseLimitError(maxExercisesPerWorkout);
     case ImportError.unknown:
       return l10n.importErrorUnknown;
   }

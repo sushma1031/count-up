@@ -25,8 +25,9 @@ class EditExercisesScreen extends StatefulWidget {
 
 class _EditExercisesScreenState extends State<EditExercisesScreen> {
   final _formKey = GlobalKey<FormState>();
-  List<List<String>> _data = [];
-  List<bool> _hasChanged = [];
+  late final List<GlobalKey<FormFieldState<List<String>>>> _fieldKeys;
+  late final List<List<String>> _originalData;
+  late final List<List<String>> _data;
 
   List<List<String>> formatExercises(List<Exercise> ex) {
     List<List<String>> list = [];
@@ -37,8 +38,45 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
   @override
   void initState() {
     super.initState();
-    _data = formatExercises(widget.exercises);
-    _hasChanged = List<bool>.filled(_data.length, false);
+    _originalData = formatExercises(widget.exercises);
+    _data = _originalData.map((entry) => List<String>.of(entry)).toList();
+    _fieldKeys = List.generate(
+      _data.length,
+      (_) => GlobalKey<FormFieldState<List<String>>>(),
+    );
+  }
+
+  Future<void> _save() async {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+      final firstError = _fieldKeys.firstWhere((key) => key.currentState!.hasError);
+      await Scrollable.ensureVisible(
+        firstError.currentContext!,
+        alignment: 0.1,
+        duration: const Duration(milliseconds: 300),
+      );
+      return;
+    }
+
+    final toModify = <Map>[];
+    for (int i = 0; i < _data.length; i++) {
+      final draft = _data[i];
+      final original = _originalData[i];
+      if (draft[0] != original[0] || draft[1] != original[1]) {
+        toModify.add({
+          'index': i,
+          'name': draft[0],
+          'duration': int.parse(draft[1]),
+        });
+      }
+    }
+
+    if (toModify.isNotEmpty) {
+      await widget.modifyExercise(widget.workoutKey, toModify);
+    }
+    if (mounted) widget.returnToStaticList();
   }
 
   void _onPopInvoked(bool didPop, Object? result) async {
@@ -59,68 +97,52 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
         onPopInvokedWithResult: _onPopInvoked,
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-          body: Form(
-              key: _formKey,
+          body: SafeArea(
               child: Padding(
                   padding: EdgeInsets.all(16),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                          child: ListView.builder(
-                              itemCount: _data.length,
-                              itemBuilder: (context, index) {
-                                return Row(
-                                    key: UniqueKey(),
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
+                        child: Form(
+                          key: _formKey,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                for (int i = 0; i < _data.length; i++)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12.0),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 16, right: 12),
+                                          child: Text('${i + 1}.'),
+                                        ),
+                                        Expanded(
                                           child: ExerciseFormField(
-                                        initialValue: [..._data[index]],
-                                        onSaved: (newValue) {
-                                          var old = _data[index];
-                                          if (newValue == null) {
-                                            _hasChanged[index] = false;
-                                            return;
-                                          }
-                                          if (newValue[0] != old[0] ||
-                                              newValue[1] != old[1]) {
-                                            _hasChanged[index] = true;
-                                            _data[index] = newValue;
-                                          }
-                                        },
-                                        validator: validateExercise(AppLocalizations.of(context)),
-                                      ))
-                                    ]);
-                              })),
+                                            key: _fieldKeys[i],
+                                            initialValue: [..._data[i]],
+                                            onChanged: (newValue) {
+                                              _data[i] = List<String>.of(newValue);
+                                            },
+                                            validator: validateExercise(l10n),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                       SizedBox(
-                          width: 75,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              var valid = _formKey.currentState!.validate();
-                              if (!valid) {
-                                return;
-                              }
-                              _formKey.currentState!.save();
-                              List<Map> toModify = [];
-                              for (int i = 0; i < _hasChanged.length; i++) {
-                                if (_hasChanged[i]) {
-                                  toModify.add({
-                                    'index': i,
-                                    'name': _data[i][0],
-                                    'duration': int.parse(_data[i][1])
-                                  });
-                                }
-                              }
-                              if (toModify.length > 0)
-                                await widget.modifyExercise(widget.workoutKey, toModify);
-
-                              widget.returnToStaticList();
-                            },
-                            child: Text(l10n.saveBtn),
-                          ))
+                        width: 75,
+                        child: ElevatedButton(
+                          onPressed: _save,
+                          child: Text(l10n.saveBtn),
+                        ),
+                      ),
                     ],
                   ))),
         ));

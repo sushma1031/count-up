@@ -1,4 +1,5 @@
 import 'package:count_up/utils/validate_exercise.dart';
+import 'package:count_up/utils/workout_constants.dart';
 import 'package:count_up/widgets/exercise_form_field.dart';
 import 'package:flutter/material.dart';
 import '../models/exercise.dart';
@@ -8,13 +9,15 @@ class ExercisesForm extends StatefulWidget {
   final Future<void> Function(int, List<Exercise>) addWorkoutExercises;
   final void Function() returnToStaticList;
   final int workoutKey;
+  final int currentExerciseCount;
   final Future<bool> Function() onPop;
   const ExercisesForm(
       {Key? key,
       required this.addWorkoutExercises,
       required this.returnToStaticList,
       required this.onPop,
-      required this.workoutKey})
+      required this.workoutKey,
+      required this.currentExerciseCount})
       : super(key: key);
   @override
   State<ExercisesForm> createState() => _ExercisesFormState();
@@ -24,6 +27,24 @@ class _ExercisesFormState extends State<ExercisesForm> {
   final _formKey = GlobalKey<FormState>();
   int _rows = 1;
   List<List<String>> _allData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.currentExerciseCount >= maxExercisesPerWorkout) {
+      _rows = 0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showExerciseLimitError();
+      });
+    }
+  }
+
+  void _showExerciseLimitError() {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(AppLocalizations.of(context)
+          .workoutExerciseLimitError(maxExercisesPerWorkout)),
+    ));
+  }
 
   void updateAllData(List<String> data, int index) {
     if (index < _allData.length) {
@@ -58,6 +79,8 @@ class _ExercisesFormState extends State<ExercisesForm> {
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          if (_rows == 0)
+                            Text(l10n.workoutExerciseLimitError(maxExercisesPerWorkout)),
                           Expanded(
                             child: ListView.builder(
                                 itemCount: _rows,
@@ -89,6 +112,12 @@ class _ExercisesFormState extends State<ExercisesForm> {
                                                   .onSurface
                                                   .withValues(alpha: 0.8),
                                             )),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 16, right: 12),
+                                          child: Text(
+                                              '${widget.currentExerciseCount + index + 1}.'),
+                                        ),
                                         Expanded(
                                             child: ExerciseFormField(
                                           initialValue:
@@ -107,6 +136,11 @@ class _ExercisesFormState extends State<ExercisesForm> {
                                                 ? null
                                                 : IconButton(
                                                     onPressed: () {
+                                                      if (widget.currentExerciseCount + _rows >=
+                                                          maxExercisesPerWorkout) {
+                                                        _showExerciseLimitError();
+                                                        return;
+                                                      }
                                                       var valid = _formKey
                                                           .currentState!
                                                           .validate();
@@ -136,7 +170,12 @@ class _ExercisesFormState extends State<ExercisesForm> {
                           SizedBox(
                               width: 75,
                               child: ElevatedButton(
-                                onPressed: () async {
+                                onPressed: _rows == 0 ? null : () async {
+                                  if (widget.currentExerciseCount + _rows >
+                                      maxExercisesPerWorkout) {
+                                    _showExerciseLimitError();
+                                    return;
+                                  }
                                   var valid = _formKey.currentState!.validate();
                                   if (!valid) {
                                     return;
