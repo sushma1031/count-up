@@ -5,14 +5,13 @@ import 'package:count_up/gen/l10n/app_localizations.dart';
 class WorkoutCard extends StatelessWidget {
   final WorkoutDisplay workout;
   final void Function() onTap;
-  const WorkoutCard({Key? key, required this.workout, required this.onTap})
-      : super(key: key);
+  const WorkoutCard({Key? key, required this.workout, required this.onTap}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    Color primary =
-        Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
+    final totalDuration = workout.totalDuration;
+    Color primary = Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
     Color darkBase = Theme.of(context).colorScheme.surface;
     return Card(
       elevation: 24,
@@ -24,10 +23,7 @@ class WorkoutCard extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: <Color>[
               Color.alphaBlend(primary, darkBase),
-              Theme.of(context)
-                  .colorScheme
-                  .primaryContainer
-                  .withValues(alpha: 0.25)
+              Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.25)
             ],
             tileMode: TileMode.mirror,
           ),
@@ -52,43 +48,30 @@ class WorkoutCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Padding(
-                            padding: EdgeInsets.only(right: 12),
-                            child: Chip(
-                              backgroundColor:
-                                  Color.alphaBlend(primary, darkBase),
-                              label: Text(
-                                l10n.workoutDurationMinutes(
-                                    workout.totalDuration),
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .secondary),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary),
-                                  borderRadius: BorderRadius.circular(5)),
-                            )),
+                        if (totalDuration != null)
+                          Padding(
+                              padding: EdgeInsets.only(right: 12),
+                              child: Chip(
+                                backgroundColor: Color.alphaBlend(primary, darkBase),
+                                label: Text(
+                                  l10n.workoutDurationMinutes(totalDuration) +
+                                      (workout.composition == WorkoutComposition.mixed ? "+" : ""),
+                                  style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                    side:
+                                        BorderSide(color: Theme.of(context).colorScheme.secondary),
+                                    borderRadius: BorderRadius.circular(5)),
+                              )),
                         Chip(
                             elevation: 0,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.secondary,
+                            backgroundColor: Theme.of(context).colorScheme.secondary,
                             label: Text(
-                              l10n.workoutExerciseCount(
-                                  workout.noOfExercises),
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSecondary),
+                              l10n.workoutExerciseCount(workout.noOfExercises),
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSecondary),
                             ),
                             shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .secondary),
+                                side: BorderSide(color: Theme.of(context).colorScheme.secondary),
                                 borderRadius: BorderRadius.circular(5))),
                       ],
                     )

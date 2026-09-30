@@ -125,9 +125,7 @@ class _EditWorkoutScreenState extends State<EditWorkoutScreen> {
                                         });
                                       },
                                     ),
-                                    title: ExerciseItem(
-                                        name: _ex[index].name,
-                                        duration: _ex[index].duration),
+                                    title: ExerciseItem(exercise: _ex[index]),
                                     trailing: ReorderableDragStartListener(
                                       index: index,
                                       child: Icon(

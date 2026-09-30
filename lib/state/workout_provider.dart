@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/exercise.dart';
 import './timer_provider.dart';
+import './rep_provider.dart';
 import '../widgets/workout_complete.dart';
 import '../services/audio_service.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -86,23 +87,41 @@ class _WorkoutProviderState extends State<WorkoutProvider> {
       _wakeLockEnabled = false;
     }
 
+    final currentExercise = _exercises[_currentIndex];
+    final String? nextName = _currentIndex < _exercises.length - 1
+        ? _exercises[_currentIndex + 1].name
+        : null;
+    final String workoutProgress =
+        "${_currentIndex + 1}/${_exercises.length}";
+
     return Center(
         child: _isWorkoutComplete
             ? WorkoutComplete(
                 restartWorkout: restartWorkout,
               )
-            : TimerProvider(
-                name: _exercises[_currentIndex].name,
-                nextName: _currentIndex < _exercises.length - 1
-                    ? _exercises[_currentIndex + 1].name
-                    : null,
-                duration: Duration(seconds: _exercises[_currentIndex].duration),
-                currentIndex: _currentIndex,
-                nextExercise: nextExercise,
-                previousExercise: previousExercise,
-                noOfExercises: _exercises.length - 1,
-                workoutProgress: "${_currentIndex + 1}/${_exercises.length}",
-                player: widget.player,
-              ));
+            : currentExercise is RepExercise
+                ? RepProvider(
+                    name: currentExercise.name,
+                    nextName: nextName,
+                    reps: currentExercise.reps,
+                    currentIndex: _currentIndex,
+                    nextExercise: nextExercise,
+                    previousExercise: previousExercise,
+                    noOfExercises: _exercises.length - 1,
+                    workoutProgress: workoutProgress,
+                  )
+                : TimerProvider(
+                    name: currentExercise.name,
+                    nextName: nextName,
+                    duration: Duration(
+                        seconds: (currentExercise as DurationExercise)
+                            .duration),
+                    currentIndex: _currentIndex,
+                    nextExercise: nextExercise,
+                    previousExercise: previousExercise,
+                    noOfExercises: _exercises.length - 1,
+                    workoutProgress: workoutProgress,
+                    player: widget.player,
+                  ));
   }
 }

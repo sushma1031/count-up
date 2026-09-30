@@ -1,0 +1,4 @@
+enum ExerciseType {
+  duration,
+  rep,
+}

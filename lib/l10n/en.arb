@@ -64,7 +64,6 @@
   "exportErrorFS": "Failed to save the workout file.",
   "exportErrorPlatform": "Could not open share interface.",
   "exportErrorUnknown": "Something went wrong while exporting.",
-  "addExercisesTitle": "Add Exercises",
   "editWorkoutTitle": "Edit Workout",
   "editExercisesTitle": "Edit Exercises",
   "exportMenuItem": "Export",
@@ -76,11 +75,11 @@
   "nameRequired": "Please enter a name",
   "newWorkoutLabel": "New Workout",
   "addBtn": "Add",
-  "addAnotherExerciseTooltip": "Add another exercise",
-  "exerciseNameHint": "Name",
-  "exerciseDurationHint": "Secs",
+  "exerciseTypeDurationLabel": "Time",
+  "exerciseTypeRepLabel": "Reps",
   "fieldsCannotBeEmpty": "Fields cannot be empty",
   "durationRangeError": "Duration must be in range [1, 999]",
+  "repsRangeError": "Reps must be in range [1, 999]",
   "nextUp": "Next Up: {name}",
   "@nextUp": {
     "placeholders": {
@@ -93,6 +92,7 @@
   "previousTooltip": "Previous",
   "pauseResumeTooltip": "Pause/Resume",
   "nextTooltip": "Next",
+  "doneTooltip": "Done",
   "timerScreenTitle": "Timer",
   "startWorkoutBtn": "Start Workout",
   "workoutCompleteMessage1": "You did something today that your future self will be thankful for!",
@@ -115,7 +115,7 @@
       }
     }
   },
-  "workoutExerciseCount": "{count} Sets",
+  "workoutExerciseCount": "{count} Moves",
   "@workoutExerciseCount": {
     "placeholders": {
       "count": {
@@ -130,5 +130,33 @@
         "type": "int"
       }
     }
-  }
+  },
+  "exerciseRepsCount": "{count} reps",
+  "@exerciseRepsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "repsLabel": "reps",
+  "addExerciseTitle": "Add Exercise",
+  "editExerciseTitle": "Edit Exercise",
+  "doneBtn": "Done",
+  "exerciseNameHint": "Name",
+  "exerciseDurationHint": "Seconds",
+  "exerciseRepsHint": "Reps",
+  "addExerciseTooltip": "Add exercise",
+  "noExercisesHint": "No exercises yet. Tap + to add one.",
+  "exerciseDeletedMessage": "{name} deleted",
+  "@exerciseDeletedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "undoBtn": "Undo",
+  "deleteExerciseAction": "Delete",
+  "emptyWorkoutHint": "Empty workout."
 }

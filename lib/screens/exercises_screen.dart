@@ -4,17 +4,15 @@ import 'package:count_up/screens/edit_exercises_screen.dart';
 import 'package:count_up/services/storage_service.dart';
 import 'package:count_up/services/workout_backup_service.dart';
 import 'package:count_up/utils/errors.dart';
-import 'package:count_up/utils/workout_constants.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/widgets/icon_text_item.dart';
 import 'package:flutter/material.dart';
-import '../widgets/exercises_form.dart';
 import '../widgets/static_exercises_list.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
-enum WorkoutView { staticList, add, editWorkout, editExercise }
+enum WorkoutView { staticList, editWorkout, editExercise }
 
-enum WorkoutAction { addExercise, editWorkout, editExercise, deleteWorkout, exportWorkout }
+enum WorkoutAction { editWorkout, editExercise, deleteWorkout, exportWorkout }
 
 class ExercisesScreen extends StatefulWidget {
   final int workoutKey;
@@ -99,8 +97,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     switch (view) {
       case WorkoutView.staticList:
         return _w.name;
-      case WorkoutView.add:
-        return l10n.addExercisesTitle;
       case WorkoutView.editWorkout:
         return l10n.editWorkoutTitle;
       case WorkoutView.editExercise:
@@ -131,23 +127,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         offset: Offset.fromDirection(90, 50),
                         onSelected: (value) async {
                           switch (value) {
-                            case WorkoutAction.addExercise:
-                              if (_w.exercises.length >= maxExercisesPerWorkout) {
-                                _showErrorSnackbar(
-                                    l10n.workoutExerciseLimitError(maxExercisesPerWorkout));
-                                break;
-                              }
-                              setState(() {
-                                _currentView = WorkoutView.add;
-                                _child = ExercisesForm(
-                                  workoutKey: widget.workoutKey,
-                                  currentExerciseCount: _w.exercises.length,
-                                  addWorkoutExercises: widget.db.addWorkoutExercises,
-                                  returnToStaticList: _returnToStaticList,
-                                  onPop: _onPop,
-                                );
-                              });
-                              break;
                             case WorkoutAction.editWorkout:
                               setState(() {
                                 _currentView = WorkoutView.editWorkout;
@@ -166,7 +145,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                                 _currentView = WorkoutView.editExercise;
                                 _child = EditExercisesScreen(
                                     exercises: _w.exercises,
-                                    modifyExercise: widget.db.modifyExercises,
+                                    updateWorkoutExercises: widget.db.updateWorkoutExercises,
                                     workoutKey: widget.workoutKey,
                                     returnToStaticList: _returnToStaticList,
                                     onPop: _onPop);
@@ -186,16 +165,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                           }
                         },
                         itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
-                              PopupMenuItem<WorkoutAction>(
-                                child: Opacity(
-                                  opacity: _w.exercises.length >= maxExercisesPerWorkout ? 0.38 : 1,
-                                  child: IconTextItem(
-                                    icon: Icons.add,
-                                    text: l10n.addExercisesTitle,
-                                  ),
-                                ),
-                                value: WorkoutAction.addExercise,
-                              ),
                               PopupMenuItem<WorkoutAction>(
                                 child: IconTextItem(
                                   icon: Icons.reorder,

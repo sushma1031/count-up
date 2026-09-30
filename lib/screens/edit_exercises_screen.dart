@@ -1,18 +1,24 @@
+import 'dart:math';
+
 import 'package:count_up/models/exercise.dart';
-import 'package:count_up/widgets/exercise_form_field.dart';
+import 'package:count_up/models/workout.dart';
+import 'package:count_up/utils/workout_constants.dart';
+import 'package:count_up/widgets/exercise_item.dart';
+import 'package:count_up/widgets/exercise_sheet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:count_up/utils/validate_exercise.dart';
+import 'package:flutter/semantics.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
 class EditExercisesScreen extends StatefulWidget {
   final int workoutKey;
   final List<Exercise> exercises;
-  final Future<int> Function(int, List<Map>) modifyExercise;
+  final Future<Workout?> Function(int key, List<Exercise> newExercises) updateWorkoutExercises;
   final void Function() returnToStaticList;
   final Future<bool> Function() onPop;
   const EditExercisesScreen(
       {Key? key,
-      required this.modifyExercise,
+      required this.updateWorkoutExercises,
       required this.returnToStaticList,
       required this.onPop,
       required this.workoutKey,
@@ -24,69 +30,93 @@ class EditExercisesScreen extends StatefulWidget {
 }
 
 class _EditExercisesScreenState extends State<EditExercisesScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late final List<GlobalKey<FormFieldState<List<String>>>> _fieldKeys;
-  late final List<List<String>> _originalData;
-  late final List<List<String>> _data;
+  late final List<Exercise> _exercises = List.of(widget.exercises);
 
-  List<List<String>> formatExercises(List<Exercise> ex) {
-    List<List<String>> list = [];
-    for (Exercise e in ex) list.add(<String>[e.name, e.duration.toString()]);
-    return list;
+  bool get _hasChanges => !listEquals(widget.exercises, _exercises);
+
+  void _showSnackBar(SnackBar snackBar) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _originalData = formatExercises(widget.exercises);
-    _data = _originalData.map((entry) => List<String>.of(entry)).toList();
-    _fieldKeys = List.generate(
-      _data.length,
-      (_) => GlobalKey<FormFieldState<List<String>>>(),
-    );
+  Future<void> _add() async {
+    final l10n = AppLocalizations.of(context);
+    if (_exercises.length >= maxExercisesPerWorkout) {
+      _showSnackBar(
+          SnackBar(content: Text(l10n.workoutExerciseLimitError(maxExercisesPerWorkout))));
+      return;
+    }
+    final exercise = await showExerciseSheet(context);
+    if (exercise == null || !mounted) return;
+    setState(() => _exercises.add(exercise));
+  }
+
+  Future<void> _edit(int index) async {
+    final exercise = await showExerciseSheet(context, initial: _exercises[index]);
+    if (exercise == null || !mounted) return;
+    setState(() => _exercises[index] = exercise);
+  }
+
+  void _delete(int index) {
+    final l10n = AppLocalizations.of(context);
+    final removed = _exercises[index];
+    setState(() => _exercises.removeAt(index));
+    _showSnackBar(SnackBar(
+      content: Text(l10n.exerciseDeletedMessage(removed.name)),
+      action: SnackBarAction(
+        label: l10n.undoBtn,
+        onPressed: () {
+          if (!mounted) return;
+          setState(() => _exercises.insert(min(index, _exercises.length), removed));
+        },
+      ),
+    ));
   }
 
   Future<void> _save() async {
-    FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) {
-      await WidgetsBinding.instance.endOfFrame;
-      if (!mounted) return;
-      final firstError = _fieldKeys.firstWhere((key) => key.currentState!.hasError);
-      await Scrollable.ensureVisible(
-        firstError.currentContext!,
-        alignment: 0.1,
-        duration: const Duration(milliseconds: 300),
-      );
-      return;
-    }
-
-    final toModify = <Map>[];
-    for (int i = 0; i < _data.length; i++) {
-      final draft = _data[i];
-      final original = _originalData[i];
-      if (draft[0] != original[0] || draft[1] != original[1]) {
-        toModify.add({
-          'index': i,
-          'name': draft[0],
-          'duration': int.parse(draft[1]),
-        });
-      }
-    }
-
-    if (toModify.isNotEmpty) {
-      await widget.modifyExercise(widget.workoutKey, toModify);
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    if (_hasChanges) {
+      await widget.updateWorkoutExercises(widget.workoutKey, List.of(_exercises));
     }
     if (mounted) widget.returnToStaticList();
   }
 
   void _onPopInvoked(bool didPop, Object? result) async {
-    if (didPop) {
-      return;
-    }
-    final bool shouldPop = await widget.onPop();
+    if (didPop) return;
+    final shouldPop = _hasChanges ? await widget.onPop() : true;
     if (shouldPop && context.mounted) {
       Navigator.of(context).pop();
     }
+  }
+
+  Widget _buildRow(BuildContext context, int index) {
+    final l10n = AppLocalizations.of(context);
+    final exercise = _exercises[index];
+    return Dismissible(
+      key: ObjectKey(exercise),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => _delete(index),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        color: Theme.of(context).colorScheme.error,
+        child: Icon(Icons.delete, color: Theme.of(context).colorScheme.onError),
+      ),
+      // Since swiping isn't available to screen readers, expose delete as an action.
+      child: Semantics(
+        customSemanticsActions: {
+          CustomSemanticsAction(label: l10n.deleteExerciseAction): () => _delete(index),
+        },
+        child: ListTile(
+          titleAlignment: ListTileTitleAlignment.center,
+          leading: Text('${index + 1}.', style: const TextStyle(fontSize: 16)),
+          minLeadingWidth: 24,
+          title: ExerciseItem(exercise: exercise),
+          onTap: () => _edit(index),
+        ),
+      ),
+    );
   }
 
   @override
@@ -97,44 +127,25 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
         onPopInvokedWithResult: _onPopInvoked,
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+          floatingActionButton: FloatingActionButton(
+            shape: StadiumBorder(),
+            tooltip: l10n.addExerciseTooltip,
+            onPressed: _add,
+            child: Icon(Icons.add),
+          ),
           body: SafeArea(
               child: Padding(
                   padding: EdgeInsets.all(16),
                   child: Column(
                     children: [
                       Expanded(
-                        child: Form(
-                          key: _formKey,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                for (int i = 0; i < _data.length; i++)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 12.0),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 16, right: 12),
-                                          child: Text('${i + 1}.'),
-                                        ),
-                                        Expanded(
-                                          child: ExerciseFormField(
-                                            key: _fieldKeys[i],
-                                            initialValue: [..._data[i]],
-                                            onChanged: (newValue) {
-                                              _data[i] = List<String>.of(newValue);
-                                            },
-                                            validator: validateExercise(l10n),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        child: _exercises.isEmpty
+                            ? Center(child: Text(l10n.noExercisesHint))
+                            : ListView.builder(
+                                padding: const EdgeInsets.only(bottom: 80),
+                                itemCount: _exercises.length,
+                                itemBuilder: _buildRow,
+                              ),
                       ),
                       SizedBox(
                         width: 75,

@@ -1,37 +1,34 @@
 import 'package:hive/hive.dart';
+import '../utils/workout_constants.dart';
+import 'duration_exercise.dart';
+import 'exercise_type.dart';
+import 'rep_exercise.dart';
 
-part 'exercise.g.dart';
+export 'duration_exercise.dart';
+export 'rep_exercise.dart';
 
-@HiveType(typeId: 1)
-class Exercise extends HiveObject {
-  @HiveField(0)
-  String _name;
+abstract class Exercise extends HiveObject {
+  Exercise();
 
-  @HiveField(1)
-  int _duration;
+  String get name;
+  set name(String value);
 
-  String get name => _name;
-  set name(value) => _name = value;
+  ExerciseType get type;
 
-  int get duration => _duration;
-  set duration(value) => _duration = value;
-
-  Exercise(this._name, this._duration);
-
-  @override
-  String toString() => "${this.name}, ${this.duration}s";
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': _name,
-      'duration': _duration,
-    };
-  }
+  Map<String, dynamic> toJson();
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
-    return Exercise(
-      json['name'] as String,
-      json['duration'] as int,
-    );
+    final rawType = json[ExerciseJsonKeys.type] as String?;
+    switch (rawType) {
+      case kExerciseTypeRep:
+        return RepExercise.fromJson(json);
+      case kExerciseTypeDuration:
+      case null:
+        // Missing type is considered DurationExercise for backward compatibility
+        // (exercises created before rep-based was introduced).
+        return DurationExercise.fromJson(json);
+      default:
+        throw FormatException('Unknown exercise type: $rawType');
+    }
   }
 }

@@ -10,8 +10,7 @@ import 'package:count_up/gen/l10n/app_localizations.dart';
 
 class StaticExerciseList extends StatelessWidget {
   final List<Exercise> exercises;
-  const StaticExerciseList({Key? key, required this.exercises})
-      : super(key: key);
+  const StaticExerciseList({Key? key, required this.exercises}) : super(key: key);
 
   void _startWorkout(BuildContext context) {
     Navigator.push(
@@ -26,8 +25,7 @@ class StaticExerciseList extends StatelessWidget {
   }
 
   Future<void> countdownAndStart(BuildContext context) async {
-    final countdownSeconds =
-        SettingsProvider.of(context).preWorkoutCountdownSeconds;
+    final countdownSeconds = SettingsProvider.of(context).preWorkoutCountdownSeconds;
 
     if (countdownSeconds <= 0) {
       _startWorkout(context);
@@ -61,26 +59,28 @@ class StaticExerciseList extends StatelessWidget {
       Padding(
           padding: EdgeInsets.only(top: 16),
           child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 8)),
-            onPressed: (exercises.length > 0)
-                ? () => countdownAndStart(context)
-                : null,
+            style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 8)),
+            onPressed: (exercises.length > 0) ? () => countdownAndStart(context) : null,
             child: Text(AppLocalizations.of(context).startWorkoutBtn),
           )),
       Expanded(
           child: Padding(
               padding: EdgeInsets.fromLTRB(32, 0, 32, 24),
-              child: ListView.builder(
-                itemCount: exercises.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                      padding: EdgeInsets.only(top: 24),
-                      child: ExerciseItem(
-                          name: exercises[index].name,
-                          duration: exercises[index].duration));
-                },
-              ))),
+              child: exercises.isEmpty
+                  ? Center(
+                      child: Text(
+                        AppLocalizations.of(context).emptyWorkoutHint,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: exercises.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                            padding: EdgeInsets.only(top: 24),
+                            child: ExerciseItem(exercise: exercises[index]));
+                      },
+                    ))),
     ]);
   }
 }

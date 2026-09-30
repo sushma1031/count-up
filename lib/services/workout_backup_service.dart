@@ -1,13 +1,12 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:archive/archive.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:count_up/models/workout.dart';
 import 'package:count_up/utils/errors.dart';
 import 'package:count_up/utils/format.dart';
-import 'package:count_up/utils/serialise_workout.dart';
+import 'package:count_up/utils/workout_serialisation.dart';
 import 'package:count_up/utils/workout_constants.dart';
 import 'storage_service.dart';
 
@@ -87,15 +86,8 @@ class WorkoutBackupService {
       return ExportError.platform;
     }
 
-    final archive = Archive();
-    for (var w in workouts) {
-      final workoutJson = exportJson(w);
-      final backupFileName = generateBackupFilename(w.name, withDate: false);
-      final archiveFile = ArchiveFile.string('$backupFileName.json', workoutJson);
-      archive.addFile(archiveFile);
-    }
+    final zipData = buildWorkoutsZipBytes(workouts);
     try {
-      final zipData = ZipEncoder().encodeBytes(archive);
       final file = File('${tempDir.path}/${generateBackupFilename("count-up")}.zip');
       await file.writeAsBytes(zipData);
       await Share.shareXFiles([XFile(file.path, mimeType: 'application/zip')]);

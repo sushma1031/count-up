@@ -10,7 +10,7 @@ import '../services/mock_audio_service.dart';
 import '../services/mock_settings_service.dart';
 
 void main() {
-  final exercises = [Exercise('Plank', 6), Exercise('Crunches', 5)];
+  final exercises = [DurationExercise('Plank', 6), DurationExercise('Crunches', 5)];
 
   Widget buildScreen(MockAudioService player, double timerVolume) {
     return SettingsProvider(

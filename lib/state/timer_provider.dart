@@ -3,7 +3,7 @@ import 'package:count_up/widgets/timer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:count_up/services/audio_service.dart';
 import 'package:count_up/utils/assets.dart';
-import 'package:count_up/gen/l10n/app_localizations.dart';
+import 'package:count_up/utils/workout_exit_dialog.dart';
 
 class TimerProvider extends StatefulWidget {
   final Duration duration;
@@ -157,34 +157,6 @@ class _TimerProviderState extends State<TimerProvider>
     super.dispose();
   }
 
-  Future<bool> _showExitDialog() async {
-    final l10n = AppLocalizations.of(context);
-    return await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(
-                l10n.workoutIncompleteTitle,
-              ),
-              content: Text(
-                l10n.exitWorkoutConfirm,
-              ),
-              actions: <Widget>[
-                TextButton(
-                    child: Text(l10n.yesBtn),
-                    onPressed: () => Navigator.of(context).pop(true)),
-                TextButton(
-                    child: Text(l10n.noBtn),
-                    onPressed: () => Navigator.of(context).pop(false)),
-              ],
-              elevation: 20,
-            );
-          },
-        ) ??
-        false;
-  }
-
   void _onPopInvoked(bool didPop, Object? result) async {
     if (didPop) {
       return;
@@ -195,7 +167,7 @@ class _TimerProviderState extends State<TimerProvider>
       });
       await pauseTimer();
     }
-    final bool shouldExit = await _showExitDialog();
+    final bool shouldExit = await showExitWorkoutDialog(context);
 
     if (shouldExit && context.mounted) {
       Navigator.of(context).pop();

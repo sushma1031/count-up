@@ -1,30 +1,25 @@
-import 'package:count_up/utils/format.dart';
 import 'package:count_up/utils/workout_constants.dart';
 import 'package:count_up/widgets/offset_animated_text.dart';
-import 'package:count_up/widgets/reverse_circular_progress_indicator.dart';
+import 'package:count_up/widgets/circle_outline.dart';
 import 'package:flutter/material.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
-class TimerWidget extends StatelessWidget {
-  final AnimationController controller;
+class RepWidget extends StatelessWidget {
   final String name;
   final String? nextName;
-  final Duration timeLeft;
+  final int reps;
   final String workoutProgress;
   final Future<void> Function() prevBtnFunction;
   final Future<void> Function()? nextBtnFunction;
-  final void Function() togglePauseResume;
-  final IconData pauseResume;
+  final void Function() onDone;
 
-  const TimerWidget(
+  const RepWidget(
       {Key? key,
-      required this.controller,
       required this.name,
-      required this.timeLeft,
+      required this.reps,
       required this.prevBtnFunction,
       required this.nextBtnFunction,
-      required this.togglePauseResume,
-      required this.pauseResume,
+      required this.onDone,
       required this.workoutProgress,
       this.nextName})
       : super(key: key);
@@ -37,12 +32,10 @@ class TimerWidget extends StatelessWidget {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(
               height: 50,
-              child: timeLeft.inSeconds > 5
-                  ? Container()
-                  : Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: OffsetAnimatedText(
-                          nextName != null ? l10n.nextUp(nextName!) : l10n.lastOne))),
+              child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: OffsetAnimatedText(
+                      nextName != null ? l10n.nextUp(nextName!) : l10n.lastOne))),
           SizedBox(
               height: 500,
               child: Column(
@@ -51,9 +44,9 @@ class TimerWidget extends StatelessWidget {
                   children: <Widget>[
                     Center(
                         child: Stack(alignment: AlignmentDirectional.center, children: <Widget>[
-                      ReverseCircularProgressIndicator(
-                        controller: controller,
-                      ),
+                      CircleOutline(
+                          size: PlaybackStyles.circleSize,
+                          strokeWidth: PlaybackStyles.circleStrokeWidth),
                       Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
                         Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                           Padding(
@@ -64,7 +57,16 @@ class TimerWidget extends StatelessWidget {
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.center,
                                       style: PlaybackStyles.exerciseName))),
-                          Text('${formatDuration(timeLeft)}', style: PlaybackStyles.count)
+                          RichText(
+                            text: TextSpan(
+                              style: PlaybackStyles.count,
+                              children: [
+                                TextSpan(text: "$reps"),
+                                TextSpan(
+                                    text: " ${l10n.repsLabel.toUpperCase()}",
+                                    style: const TextStyle(fontSize: 16))
+                              ]),
+                          )
                         ]),
                       ]),
                       Align(
@@ -84,9 +86,7 @@ class TimerWidget extends StatelessWidget {
                             onPressed: prevBtnFunction,
                             icon: Icon(Icons.skip_previous)),
                         IconButton(
-                            tooltip: l10n.pauseResumeTooltip,
-                            onPressed: togglePauseResume,
-                            icon: Icon(pauseResume)),
+                            tooltip: l10n.doneTooltip, onPressed: onDone, icon: Icon(Icons.check)),
                         IconButton(
                           tooltip: l10n.nextTooltip,
                           onPressed: nextBtnFunction,

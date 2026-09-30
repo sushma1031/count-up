@@ -1,240 +1,204 @@
 import 'package:count_up/models/exercise.dart';
+import 'package:count_up/models/workout.dart';
 import 'package:count_up/screens/edit_exercises_screen.dart';
-import 'package:count_up/widgets/exercise_form_field.dart';
+import 'package:count_up/utils/workout_constants.dart';
+import 'package:count_up/widgets/exercise_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../test_app.dart';
 
 void main() {
-  testWidgets('renders 30 numbered rows in a scrollable form', (tester) async {
+  testWidgets('renders numbered rows without writing', (tester) async {
     final editor = _EditorHarness();
     await editor.pump(tester);
 
-    expect(find.byType(ListView), findsNothing);
-    expect(find.byType(SingleChildScrollView), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byType(SingleChildScrollView),
-        matching: find.byType(Column),
-      ),
-      findsWidgets,
-    );
-    expect(find.byType(Form), findsOneWidget);
-    final form = tester.widget<Form>(find.byType(Form));
-    expect(form.key, isA<GlobalKey<FormState>>());
-    expect(form.autovalidateMode, AutovalidateMode.disabled);
-    expect(find.byType(ExerciseFormField), findsNWidgets(30));
-    for (int i = 0; i < 30; i++) {
-      expect(_row(i), findsOneWidget);
-      expect(_field(i), findsOneWidget);
-      expect(tester.state(_field(i)).mounted, isTrue);
-      expect(find.ancestor(of: _field(i), matching: find.byType(Form)),
-          findsOneWidget);
-      final field = tester.widget<ExerciseFormField>(_field(i));
-      expect(field.key, isA<GlobalKey>());
-      expect(field.autovalidateMode, AutovalidateMode.disabled);
-      expect(find.descendant(of: _row(i), matching: find.text('${i + 1}.')),
-          findsOneWidget);
-      expect(find.descendant(of: _field(i), matching: find.text('${i + 1}.')),
-          findsNothing);
-      _expectDraft(tester, i, 'Exercise ${i + 1}', '60');
+    final names = ['Plank', 'Push-ups', 'Squats'];
+    for (int i = 0; i < names.length; i++) {
+      final tile = find.ancestor(of: find.text(names[i]), matching: find.byType(ListTile));
+      expect(find.descendant(of: tile, matching: find.text('${i + 1}.')), findsOneWidget);
     }
+    expect(find.text('60s'), findsOneWidget);
+    expect(find.text('12 reps'), findsOneWidget);
     expect(editor.writes, isEmpty);
-    editor.expectOriginalsUnchanged();
   });
 
-  testWidgets('saves offscreen and visible edits in one exact batch',
-      (tester) async {
+  testWidgets('tapping a row edits it in place', (tester) async {
     final editor = _EditorHarness();
     await editor.pump(tester);
 
-    await _edit(tester, 0, 'Edited first', '91');
-    editor.expectOriginalsUnchanged();
-    await _scrollToLast(tester);
-    await _edit(tester, 29, 'Edited last', '123');
-
-    expect(editor.writes, isEmpty);
-    editor.expectOriginalsUnchanged();
+    await tester.tap(find.text('Squats'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit Exercise'), findsOneWidget);
+    await tester.enterText(_sheetField(1), '50');
+    await _tapSheetDone(tester);
     await _save(tester);
 
-    editor.expectSaved([
-      {'index': 0, 'name': 'Edited first', 'duration': 91},
-      {'index': 29, 'name': 'Edited last', 'duration': 123},
-    ]);
-  });
-
-  testWidgets('preserves all field states and draft fields while scrolling',
-      (tester) async {
-    final editor = _EditorHarness();
-    await editor.pump(tester);
-    final fieldStates = List.generate(30, (i) => tester.state(_field(i)));
-    await _edit(tester, 0, 'Retained first', '87');
-
-    await _scrollToLast(tester);
-    for (int i = 0; i < 30; i++) {
-      expect(tester.state(_field(i)), same(fieldStates[i]));
-      expect(fieldStates[i].mounted, isTrue);
-    }
-    _expectDraft(tester, 0, 'Retained first', '87');
-    await _scrollTo(tester, 0);
-
-    for (int i = 0; i < 30; i++) {
-      expect(tester.state(_field(i)), same(fieldStates[i]));
-      expect(fieldStates[i].mounted, isTrue);
-    }
-    _expectDraft(tester, 0, 'Retained first', '87');
-    expect(editor.writes, isEmpty);
+    expect(editor.savedNames, ['Plank', 'Push-ups', 'Squats']);
+    expect((editor.writes.single[2] as DurationExercise).duration, 50);
     editor.expectOriginalsUnchanged();
   });
 
-  testWidgets('parent rebuild preserves offscreen field state and edits',
-      (tester) async {
+  testWidgets('FAB adds an exercise to the end', (tester) async {
     final editor = _EditorHarness();
     await editor.pump(tester);
-    final fieldStates = List.generate(30, (i) => tester.state(_field(i)));
-    await _edit(tester, 0, 'Rebuilt first', '82');
-    await _scrollToLast(tester);
 
-    editor.rebuild(() {});
-    await tester.pump();
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Add Exercise'), findsOneWidget);
+    await tester.enterText(_sheetField(0), 'Lunges');
+    await tester.enterText(_sheetField(1), '30');
+    await _tapSheetDone(tester);
 
-    expect(find.byType(ExerciseFormField), findsNWidgets(30));
-    for (int i = 0; i < 30; i++) {
-      expect(tester.state(_field(i)), same(fieldStates[i]));
-      expect(fieldStates[i].mounted, isTrue);
-    }
-    _expectDraft(tester, 0, 'Rebuilt first', '82');
-    await _scrollTo(tester, 0);
-    _expectDraft(tester, 0, 'Rebuilt first', '82');
+    expect(find.text('4.'), findsOneWidget);
     expect(editor.writes, isEmpty);
-    editor.expectOriginalsUnchanged();
+
     await _save(tester);
-    editor.expectSaved([
-      {'index': 0, 'name': 'Rebuilt first', 'duration': 82},
-    ]);
+    expect(editor.savedNames, ['Plank', 'Push-ups', 'Squats', 'Lunges']);
   });
 
-  testWidgets('save scrolls to the first invalid row', (tester) async {
+  testWidgets('FAB at the exercise limit shows an error instead of the sheet', (tester) async {
+    final editor = _EditorHarness(
+        count: maxExercisesPerWorkout, makeExercise: (i) => DurationExercise('Ex $i', 10));
+    await editor.pump(tester);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExerciseSheet), findsNothing);
+    expect(find.text('Exercises limit reached: $maxExercisesPerWorkout'), findsOneWidget);
+  });
+
+  testWidgets('swipe deletes a row and Undo restores it in place', (tester) async {
     final editor = _EditorHarness();
     await editor.pump(tester);
 
-    await _scrollTo(tester, 20);
-    await _edit(tester, 20, 'Exercise 21', '0');
-    await _scrollTo(tester, 12);
-    await _edit(tester, 12, '', '60');
-    await _scrollTo(tester, 29);
-    expect(_field(12).hitTestable(), findsNothing);
+    await tester.drag(find.text('Push-ups'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Push-ups'), findsNothing);
+    expect(find.text('Push-ups deleted'), findsOneWidget);
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+
+    final tile = find.ancestor(of: find.text('Push-ups'), matching: find.byType(ListTile));
+    expect(find.descendant(of: tile, matching: find.text('2.')), findsOneWidget);
 
     await _save(tester);
+    expect(editor.writes, isEmpty, reason: 'delete + undo is not a change');
+  });
 
-    _expectInViewport(tester, _field(12));
+  testWidgets('a deletion is saved when not undone', (tester) async {
+    final editor = _EditorHarness();
+    await editor.pump(tester);
+
+    await tester.drag(find.text('Plank'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await _save(tester);
+
+    expect(editor.savedNames, ['Push-ups', 'Squats']);
+  });
+
+  testWidgets('rows expose a Delete semantics action', (tester) async {
+    final editor = _EditorHarness();
+    await editor.pump(tester);
+
+    final semantics = tester.widgetList<Semantics>(find.byType(Semantics)).firstWhere((s) =>
+        s.properties.customSemanticsActions?.keys.any((a) => a.label == 'Delete') ?? false);
+    semantics.properties.customSemanticsActions!.values.single();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Plank'), findsNothing);
+  });
+
+  testWidgets('shows a hint when there are no exercises', (tester) async {
+    final editor = _EditorHarness(count: 0);
+    await editor.pump(tester);
+
+    expect(find.text('No exercises yet. Tap + to add one.'), findsOneWidget);
+  });
+
+  testWidgets('back without changes leaves without asking', (tester) async {
+    final editor = _EditorHarness();
+    await editor.pump(tester);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(editor.popPrompts, 0);
+    expect(find.byType(EditExercisesScreen), findsNothing);
+  });
+
+  testWidgets('back with changes asks to discard', (tester) async {
+    final editor = _EditorHarness();
+    await editor.pump(tester);
+
+    await tester.drag(find.text('Plank'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(editor.popPrompts, 1);
+    expect(find.byType(EditExercisesScreen), findsOneWidget);
+    expect(editor.writes, isEmpty);
   });
 }
 
-Finder _field(int index) => find.byType(ExerciseFormField).at(index);
+Finder _sheetField(int index) =>
+    find.descendant(of: find.byType(ExerciseSheet), matching: find.byType(TextField)).at(index);
 
-Finder _row(int index) =>
-    find.ancestor(of: _field(index), matching: find.byType(Row)).first;
-
-Finder _input(int index, int part) => find
-    .descendant(of: _field(index), matching: find.byType(TextField))
-    .at(part);
-
-Future<void> _edit(
-    WidgetTester tester, int index, String name, String duration) async {
-  await tester.enterText(_input(index, 0), name);
-  await tester.enterText(_input(index, 1), duration);
-  await tester.pump();
-}
-
-void _expectDraft(
-    WidgetTester tester, int index, String name, String duration) {
-  expect(tester.widget<TextField>(_input(index, 0)).controller!.text, name);
-  expect(tester.widget<TextField>(_input(index, 1)).controller!.text, duration);
-}
-
-void _expectInViewport(WidgetTester tester, Finder finder) {
-  expect(finder.hitTestable(), findsOneWidget);
-  final viewport = tester.getRect(find.byType(SingleChildScrollView));
-  final rect = tester.getRect(finder);
-  expect(rect.top, greaterThanOrEqualTo(viewport.top - 0.1));
-  expect(rect.bottom, lessThanOrEqualTo(viewport.bottom + 0.1));
-}
-
-Future<void> _scrollTo(WidgetTester tester, int index) async {
-  FocusManager.instance.primaryFocus?.unfocus();
-  await tester.pump();
-  await tester.ensureVisible(_row(index));
+Future<void> _tapSheetDone(WidgetTester tester) async {
+  await tester.tap(find.text('Done'));
   await tester.pumpAndSettle();
 }
 
-Future<void> _scrollToLast(WidgetTester tester) async {
-  final firstState = tester.state(_field(0));
-  await _scrollTo(tester, 29);
-  expect(_row(0), findsOneWidget);
-  expect(_field(0), findsOneWidget);
-  expect(_field(0).hitTestable(), findsNothing);
-  expect(tester.state(_field(0)), same(firstState));
-  expect(firstState.mounted, isTrue);
-  expect(find.byType(ExerciseFormField), findsNWidgets(30));
-  _expectInViewport(tester, _field(29));
-}
-
 Future<void> _save(WidgetTester tester) async {
-  FocusManager.instance.primaryFocus?.unfocus();
-  await tester.pump();
   await tester.tap(find.widgetWithText(ElevatedButton, 'Save'));
   await tester.pumpAndSettle();
 }
 
+final _defaultExercises = <Exercise Function()>[
+  () => DurationExercise('Plank', 60),
+  () => RepExercise('Push-ups', 12),
+  () => DurationExercise('Squats', 45),
+];
+
 class _EditorHarness {
-  final exercises = List.generate(30, (i) => Exercise('Exercise ${i + 1}', 60));
-  final writes = <Map<String, Object>>[];
-  late final List<List<Object>> _originalValues;
-  late StateSetter rebuild;
+  final List<Exercise> exercises;
+  final writes = <List<Exercise>>[];
+  late final List<String> _originalValues = _values;
   int returns = 0;
+  int popPrompts = 0;
 
-  _EditorHarness() {
-    _originalValues = _values;
-  }
+  _EditorHarness({int? count, Exercise Function(int)? makeExercise})
+      : exercises = makeExercise != null
+            ? List.generate(count!, makeExercise)
+            : _defaultExercises.take(count ?? _defaultExercises.length).map((f) => f()).toList();
 
-  List<List<Object>> get _values => exercises
-      .map((exercise) => <Object>[exercise.name, exercise.duration])
-      .toList();
+  List<String> get _values => exercises.map((e) => e.toString()).toList();
+
+  List<String> get savedNames => writes.single.map((e) => e.name).toList();
 
   Future<void> pump(WidgetTester tester) async {
-    await tester.binding.setSurfaceSize(const Size(800, 600));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(localizedApp(
-      StatefulBuilder(builder: (context, setState) {
-        rebuild = setState;
-        return EditExercisesScreen(
-          workoutKey: 42,
-          exercises: exercises,
-          modifyExercise: (key, updates) async {
-            expectOriginalsUnchanged();
-            writes.add({
-              'workoutKey': key,
-              'updates': updates.map((update) => Map.of(update)).toList(),
-            });
-            return updates.length;
-          },
-          returnToStaticList: () => returns++,
-          onPop: () async => true,
-        );
-      }),
-    ));
+    // Snapshot before any interaction.
+    _originalValues;
+    await tester.pumpWidget(localizedApp(EditExercisesScreen(
+      workoutKey: 42,
+      exercises: exercises,
+      updateWorkoutExercises: (key, newExercises) async {
+        expect(key, 42);
+        writes.add(newExercises);
+        return Workout('w', newExercises);
+      },
+      returnToStaticList: () => returns++,
+      onPop: () async {
+        popPrompts++;
+        return false;
+      },
+    )));
     await tester.pumpAndSettle();
   }
 
   void expectOriginalsUnchanged() => expect(_values, _originalValues);
-
-  void expectSaved(List<Map> updates) {
-    expect(writes, [
-      {'workoutKey': 42, 'updates': updates},
-    ]);
-    expect(returns, 1);
-    expectOriginalsUnchanged();
-  }
 }

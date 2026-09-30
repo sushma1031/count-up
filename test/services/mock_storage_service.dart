@@ -18,10 +18,14 @@ class MockStorageService implements StorageService<List<Workout>> {
   Map<int, Workout> workoutsMap = {};
   int _nextKey = 0;
 
+  /// Tracks calls that changed stored workouts - does not include seeding and
+  /// direct modifications of the map.
+  int writes = 0;
+
   int get size => workoutsMap.length;
 
   Future<void> loadData() async {
-    var e = [Exercise('Plank', 10), Exercise('Crunches', 5)];
+    var e = [DurationExercise('Plank', 10), DurationExercise('Crunches', 5)];
     workoutsMap = {};
     _nextKey = 0;
     _add(Workout('Abs', e));
@@ -78,6 +82,7 @@ class MockStorageService implements StorageService<List<Workout>> {
   }
 
   Future<int> addWorkout(Workout wkt) async {
+    writes++;
     final key = _add(wkt);
     _notify();
     return Future.value(key);
@@ -91,6 +96,7 @@ class MockStorageService implements StorageService<List<Workout>> {
   Future<Workout?> updateWorkoutName(int key, String name) async {
     final w = workoutsMap[key];
     if (w == null) return null;
+    writes++;
     w.name = name;
     _notify();
     return Future.value(w);
@@ -99,6 +105,7 @@ class MockStorageService implements StorageService<List<Workout>> {
   Future<Workout?> addWorkoutExercises(int key, List<Exercise> toAdd) async {
     final w = workoutsMap[key];
     if (w == null) return null;
+    writes++;
     w.exercises.addAll(toAdd);
     _notify();
     return Future.value(w);
@@ -108,24 +115,14 @@ class MockStorageService implements StorageService<List<Workout>> {
       int key, List<Exercise> newExercises) async {
     final w = workoutsMap[key];
     if (w == null) return null;
+    writes++;
     w.exercises = newExercises;
     _notify();
     return Future.value(w);
   }
 
-  Future<int> modifyExercises(int workoutKey, List<Map> data) async {
-    final w = workoutsMap[workoutKey];
-    if (w == null) return 0;
-    for (int i = 0; i < data.length; i++) {
-      var x = data[i];
-      w.exercises[x['index']].name = x['name'];
-      w.exercises[x['index']].duration = x['duration'];
-    }
-    _notify();
-    return Future.value(data.length);
-  }
-
   Future<void> deleteWorkout(int key) async {
+    writes++;
     workoutsMap.remove(key);
     _notify();
     return Future.value();
@@ -138,12 +135,14 @@ class MockStorageService implements StorageService<List<Workout>> {
   }
 
   Future<void> clear() async {
+    writes++;
     workoutsMap = {};
     _notify();
     return Future.value();
   }
 
   Future<void> delete() async {
+    writes++;
     workoutsMap = {};
     _notify();
     return Future.value();

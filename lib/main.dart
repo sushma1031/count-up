@@ -12,7 +12,8 @@ void main() async {
   final appDocumentsDir =
       await path_provider.getApplicationDocumentsDirectory();
   await Hive.initFlutter(appDocumentsDir.path);
-  Hive.registerAdapter(ExerciseAdapter());
+  Hive.registerAdapter(DurationExerciseAdapter());
+  Hive.registerAdapter(RepExerciseAdapter());
   Hive.registerAdapter(WorkoutAdapter());
 
   final settings = HiveSettingsService();

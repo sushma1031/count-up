@@ -109,8 +109,7 @@ class WorkoutStorageService implements StorageService<Box<Workout>> {
     return w;
   }
 
-  Future<Workout?> updateWorkoutExercises(
-      int key, List<Exercise> newExercises) async {
+  Future<Workout?> updateWorkoutExercises(int key, List<Exercise> newExercises) async {
     Workout? w = getWorkout(key);
     if (w == null) {
       debugPrint('Error: Workout with key $key not found.\n');
@@ -119,27 +118,6 @@ class WorkoutStorageService implements StorageService<Box<Workout>> {
     w.exercises = newExercises;
     await w.save();
     return w;
-  }
-
-  Future<int> modifyExercises(int workoutKey, List<Map> data) async {
-    Workout? w = workouts.get(workoutKey);
-    if (w == null) {
-      debugPrint('Error: Workout with key $workoutKey not found.\n');
-      return 0;
-    }
-    int modified = 0;
-    for (int i = 0; i < data.length; i++) {
-      if (data[i]['index'] < 0 || data[i]['index'] > w.exercises.length - 1) {
-        debugPrint(
-            'Error: Exercise index out of range. Length: ${w.exercises.length}, index: ${data[i]['index']}\n');
-        continue;
-      }
-      w.exercises[data[i]['index']].name = data[i]['name'];
-      w.exercises[data[i]['index']].duration = data[i]['duration'];
-      modified++;
-    }
-    await w.save();
-    return modified;
   }
 
   Future<void> deleteWorkout(int key) async {

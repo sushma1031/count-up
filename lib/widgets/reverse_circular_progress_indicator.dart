@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
+import 'package:count_up/utils/workout_constants.dart';
 
 class ReverseCircularProgressIndicator extends StatelessWidget {
   final AnimationController controller;
@@ -12,12 +13,12 @@ class ReverseCircularProgressIndicator extends StatelessWidget {
         Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15);
     Color darkSurface = Theme.of(context).colorScheme.surface;
     return Container(
-        width: 275,
-        height: 275,
+        width: PlaybackStyles.circleSize,
+        height: PlaybackStyles.circleSize,
         child: CircularProgressIndicator(
           backgroundColor: Color.alphaBlend(secondary, darkSurface),
           color: Theme.of(context).colorScheme.secondary,
-          strokeWidth: 8,
+          strokeWidth: PlaybackStyles.circleStrokeWidth,
           value: 1 - controller.value,
           semanticsLabel: AppLocalizations.of(context).timeLeftSemanticLabel,
         ));

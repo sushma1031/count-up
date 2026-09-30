@@ -9,10 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'mock_storage_service.dart';
 
 void main() {
-  late _TrackingStorageService db;
+  late MockStorageService db;
 
   setUp(() {
-    db = _TrackingStorageService();
+    db = MockStorageService();
     db.workoutsMap[99] = Workout('Workout', []);
   });
 
@@ -39,12 +39,10 @@ void main() {
 
       if (count > maxExercisesPerWorkout) {
         expect(error, ImportError.exerciseLimit);
-        expect(db.nameReads, 0);
         expect(db.writes, 0);
         expect(db.size, 1);
       } else {
         expect(error, isNull);
-        expect(db.nameReads, 1);
         expect(db.writes, 1);
         expect(db.size, 2);
         final imported = db.getAllWorkouts().last;
@@ -61,7 +59,6 @@ void main() {
     final error = await WorkoutBackupService(db).importWorkoutJson('{');
 
     expect(error, ImportError.format);
-    expect(db.nameReads, 0);
     expect(db.writes, 0);
     expect(db.size, 1);
   });
@@ -73,25 +70,43 @@ void main() {
     );
 
     expect(error, ImportError.type);
-    expect(db.nameReads, 0);
     expect(db.writes, 0);
     expect(db.size, 1);
   });
-}
 
-class _TrackingStorageService extends MockStorageService {
-  int nameReads = 0;
-  int writes = 0;
+  test(
+      'unknown exercise type in a multi-exercise workout is rejected without a partial import',
+      () async {
+    final workoutJson = jsonEncode({
+      'name': 'Workout',
+      'exercises': [
+        {'name': 'Crunches', 'duration': 10},
+        {'type': 'burpee', 'name': 'Burpees', 'count': 10},
+      ],
+    });
 
-  @override
-  List<String> getAllWorkoutNames() {
-    nameReads++;
-    return super.getAllWorkoutNames();
-  }
+    final error = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
 
-  @override
-  Future<int> addWorkout(Workout workout) {
-    writes++;
-    return super.addWorkout(workout);
-  }
+    expect(error, ImportError.format);
+    expect(db.writes, 0);
+    expect(db.size, 1);
+  });
+
+  test(
+      'malformed rep count in a multi-exercise workout is rejected without a partial import',
+      () async {
+    final workoutJson = jsonEncode({
+      'name': 'Workout',
+      'exercises': [
+        {'name': 'Crunches', 'duration': 10},
+        {'type': 'rep', 'name': 'Push-ups', 'reps': 'twelve'},
+      ],
+    });
+
+    final error = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
+
+    expect(error, ImportError.type);
+    expect(db.writes, 0);
+    expect(db.size, 1);
+  });
 }

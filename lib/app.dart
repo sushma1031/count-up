@@ -40,6 +40,7 @@ class CountUpApp extends StatelessWidget {
                   behavior: SnackBarBehavior.floating,
                   insetPadding: const EdgeInsets.all(16),
                   backgroundColor: darken(_colorScheme.onSurface, 0.2),
+                  actionTextColor: _colorScheme.primaryContainer,
                   elevation: 16)),
           home: LifecycleWatcher(
             child: HomePage(db: db),

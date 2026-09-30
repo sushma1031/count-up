@@ -1,9 +1,7 @@
-import 'package:count_up/gen/l10n/app_localizations.dart';
 import 'package:count_up/models/exercise.dart';
 import 'package:count_up/models/workout.dart';
+import 'package:count_up/screens/edit_exercises_screen.dart';
 import 'package:count_up/screens/exercises_screen.dart';
-import 'package:count_up/utils/workout_constants.dart';
-import 'package:count_up/widgets/exercises_form.dart';
 import 'package:count_up/widgets/static_exercises_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,69 +9,65 @@ import 'package:flutter_test/flutter_test.dart';
 import '../services/mock_storage_service.dart';
 import '../test_app.dart';
 
+Future<int> _pumpScreen(WidgetTester tester, MockStorageService db, List<Exercise> exercises) async {
+  final workoutKey = await db.addWorkout(Workout('Workout', exercises));
+  await tester.pumpWidget(localizedApp(ExercisesScreen(db: db, workoutKey: workoutKey)));
+  await tester.pumpAndSettle();
+  return workoutKey;
+}
+
+Future<void> _openMenuItem(WidgetTester tester, WorkoutAction action) async {
+  await tester.tap(find.byWidgetPredicate((w) => w is PopupMenuButton<WorkoutAction>));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byWidgetPredicate(
+      (w) => w is PopupMenuItem<WorkoutAction> && w.value == action));
+  await tester.pumpAndSettle();
+}
+
 void main() {
-  for (final count in [
-    maxExercisesPerWorkout - 1,
-    maxExercisesPerWorkout,
-    maxExercisesPerWorkout + 1,
-  ]) {
-    testWidgets('Add Exercises respects the limit with $count exercises',
-        (tester) async {
-      final db = MockStorageService();
-      addTearDown(db.notifier.dispose);
-      final workoutKey = await db.addWorkout(Workout(
-        'Workout',
-        List.generate(count, (i) => Exercise('Exercise $i', 60)),
-      ));
-      final original = db.getWorkout(workoutKey)!.toJson();
-      var mutations = 0;
-      db.getListenable().addListener(() => mutations++);
-      await tester.pumpWidget(localizedApp(
-        ExercisesScreen(db: db, workoutKey: workoutKey),
-      ));
-      await tester.pumpAndSettle();
-      final l10n =
-          AppLocalizations.of(tester.element(find.byType(ExercisesScreen)));
-      final full = count >= maxExercisesPerWorkout;
+  late MockStorageService db;
 
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is PopupMenuButton<WorkoutAction>));
-      await tester.pumpAndSettle();
-      final addItem = find.byWidgetPredicate((widget) =>
-          widget is PopupMenuItem<WorkoutAction> &&
-          widget.value == WorkoutAction.addExercise);
-      expect(
-          tester.widget<PopupMenuItem<WorkoutAction>>(addItem).enabled, isTrue);
-      final opacity = tester.widget<Opacity>(find.descendant(
-        of: addItem,
-        matching: find.byType(Opacity),
-      ));
-      expect(opacity.opacity, full ? 0.38 : 1);
+  setUp(() => db = MockStorageService());
+  tearDown(() => db.notifier.dispose());
 
-      await tester.tap(addItem);
-      await tester.pumpAndSettle();
+  testWidgets('menu has Edit Exercises and no separate add entry', (tester) async {
+    await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
-      if (full) {
-        expect(find.byType(StaticExerciseList), findsOneWidget);
-        expect(find.byType(ExercisesForm), findsNothing);
-        expect(find.byType(SnackBar), findsOneWidget);
-        expect(
-          find.descendant(
-            of: find.byType(SnackBar),
-            matching: find.text(l10n.errorWithMessage(
-              l10n.workoutExerciseLimitError(maxExercisesPerWorkout),
-            )),
-          ),
-          findsOneWidget,
-        );
-      } else {
-        expect(find.byType(ExercisesForm), findsOneWidget);
-        expect(find.byType(StaticExerciseList), findsNothing);
-        expect(find.byType(SnackBar), findsNothing);
-      }
-      expect(db.size, 1);
-      expect(db.getWorkout(workoutKey)!.toJson(), original);
-      expect(mutations, 0);
-    });
-  }
+    await tester.tap(find.byWidgetPredicate((w) => w is PopupMenuButton<WorkoutAction>));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit Exercises'), findsOneWidget);
+    expect(find.text('Add Exercises'), findsNothing);
+  });
+
+  testWidgets('exercises added in Edit Exercises are persisted on Save',
+      (tester) async {
+    final workoutKey = await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
+    var mutations = 0;
+    db.getListenable().addListener(() => mutations++);
+
+    await _openMenuItem(tester, WorkoutAction.editExercise);
+    expect(find.byType(EditExercisesScreen), findsOneWidget);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reps'));
+    await tester.pumpAndSettle();
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'Push-ups');
+    await tester.enterText(fields.at(1), '15');
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(mutations, 0);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(mutations, isNonZero);
+    final saved = db.getWorkout(workoutKey)!.exercises;
+    expect(saved.map((e) => e.name), ['Plank', 'Push-ups']);
+    expect((saved[1] as RepExercise).reps, 15);
+    expect(find.byType(StaticExerciseList), findsOneWidget);
+    expect(find.text('15 reps'), findsOneWidget);
+  });
 }

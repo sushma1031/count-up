@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../services/mock_audio_service.dart';
 
 void main() {
-  final exercises = [Exercise('Plank', 6), Exercise('Crunches', 5)];
+  final exercises = [DurationExercise('Plank', 6), DurationExercise('Crunches', 5)];
   MockAudioService mockPlayer = MockAudioService();
   final Widget testWidget = MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -69,7 +69,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
             body: WorkoutProvider(
-                exercises: [Exercise('Plank', 2)], player: mockPlayer)));
+                exercises: [DurationExercise('Plank', 2)], player: mockPlayer)));
     // Short duration for quick test
     await tester.pumpWidget(testWidget);
 
@@ -88,5 +88,68 @@ void main() {
     await tester.pump();
 
     expect(tester.widget<IconButton>(nextIconBtn).onPressed, null);
+  });
+
+  testWidgets('mixed workout transitions from timed to rep exercise',
+      (WidgetTester tester) async {
+    final mixedExercises = [
+      DurationExercise('Plank', 3),
+      RepExercise('Push ups', 12),
+    ];
+    final Widget mixedTestWidget = MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+            body: WorkoutProvider(
+                exercises: mixedExercises, player: mockPlayer)));
+
+    await tester.pumpWidget(mixedTestWidget);
+    expect(find.text('Plank'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 4));
+
+    expect(find.text('Push ups'), findsOneWidget);
+    expect(find.text('12 REPS', findRichText: true), findsOneWidget);
+  });
+
+  testWidgets('rep exercise never auto-advances over time',
+      (WidgetTester tester) async {
+    final repExercises = [
+      RepExercise('Push ups', 12),
+      DurationExercise('Plank', 5),
+    ];
+    final Widget repTestWidget = MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+            body: WorkoutProvider(
+                exercises: repExercises, player: mockPlayer)));
+
+    await tester.pumpWidget(repTestWidget);
+    expect(find.text('Push ups'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 30));
+
+    expect(find.text('Push ups'), findsOneWidget);
+    expect(find.text('12 REPS', findRichText: true), findsOneWidget);
+  });
+
+  testWidgets('tapping done on last rep exercise completes workout',
+      (WidgetTester tester) async {
+    final Widget repTestWidget = MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+            body: WorkoutProvider(
+                exercises: [RepExercise('Push ups', 12)],
+                player: mockPlayer)));
+
+    await tester.pumpWidget(repTestWidget);
+
+    await tester.tap(find.byIcon(Icons.check));
+    await tester.pump();
+
+    expect(find.byType(WorkoutComplete), findsOneWidget);
   });
 }

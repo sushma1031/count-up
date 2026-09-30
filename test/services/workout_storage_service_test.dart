@@ -9,7 +9,8 @@ import 'package:count_up/models/workout.dart';
 Future<void> main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
   Hive.init(Directory.systemTemp.path);
-  Hive.registerAdapter(ExerciseAdapter());
+  Hive.registerAdapter(DurationExerciseAdapter());
+  Hive.registerAdapter(RepExerciseAdapter());
   Hive.registerAdapter(WorkoutAdapter());
 
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -50,12 +51,12 @@ Future<void> main() async {
   test('adds workout exercises correctly', () async {
     await db.clear();
     await db.addEmptyWorkout('Abs');
-    await db.addWorkoutExercises(0, [Exercise('Plank', 60)]);
+    await db.addWorkoutExercises(0, [DurationExercise('Plank', 60)]);
     var ex = db.getWorkoutExercises(0);
     expect(ex.length, 1);
 
     await db.addWorkoutExercises(
-        0, [Exercise('Crunches', 40), Exercise('Russian Twist', 40)]);
+        0, [DurationExercise('Crunches', 40), DurationExercise('Russian Twist', 40)]);
     ex = db.getWorkoutExercises(0);
     expect(ex.length, 3);
 
@@ -66,38 +67,39 @@ Future<void> main() async {
     await db.clear();
     await db.addEmptyWorkout('Abs');
     await db.addWorkoutExercises(0, [
-      Exercise('Plank', 60),
-      Exercise('Crunches', 40),
-      Exercise('Russian Twist', 40)
+      DurationExercise('Plank', 60),
+      DurationExercise('Crunches', 40),
+      DurationExercise('Russian Twist', 40)
     ]);
 
     await db.updateWorkoutExercises(
-        0, [Exercise('Crunches', 40), Exercise('Russian Twist', 40)]);
+        0, [DurationExercise('Crunches', 40), DurationExercise('Russian Twist', 40)]);
     var ex = db.getWorkoutExercises(0);
     expect(ex.length, 2);
 
     await db.updateWorkoutExercises(
-        0, [Exercise('Russian Twist', 40), Exercise('Crunches', 40)]);
+        0, [DurationExercise('Russian Twist', 40), DurationExercise('Crunches', 40)]);
     ex = db.getWorkoutExercises(0);
     expect(ex.map((e) => e.name), ['Russian Twist', 'Crunches']);
   });
 
-  test('modifies a workout exercise correctly', () async {
+  test('updates a workout exercise from duration to reps', () async {
     await db.clear();
     await db.addEmptyWorkout('Abs');
     await db.addWorkoutExercises(0, [
-      Exercise('Plank', 60),
-      Exercise('Crunches', 40),
-      Exercise('Russian Twist', 40)
+      DurationExercise('Plank', 60),
+      DurationExercise('Crunches', 40),
     ]);
-    await db.modifyExercises(0, [
-      {'index': 0, 'name': 'Push-up', 'duration': 30}
+    await db.updateWorkoutExercises(0, [
+      DurationExercise('Plank', 60),
+      RepExercise('Push-ups', 20),
     ]);
     var ex = db.getWorkoutExercises(0);
-    expect(ex[0].name, 'Push-up');
-    expect(ex[0].duration, 30);
+    expect(ex[0], isA<DurationExercise>());
+    expect(ex[1], isA<RepExercise>());
+    expect(ex[1].name, 'Push-ups');
+    expect((ex[1] as RepExercise).reps, 20);
   });
-
   test('deletes a workout successfully', () async {
     await db.clear();
     await db.addManyEmptyWorkouts(['Thighs', 'Biceps']);
