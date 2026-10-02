@@ -10,15 +10,12 @@ import 'package:flutter/material.dart';
 import '../widgets/static_exercises_list.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
-enum WorkoutView { staticList, editWorkout, editExercise }
-
 enum WorkoutAction { editWorkout, editExercise, deleteWorkout, exportWorkout }
 
 class ExercisesScreen extends StatefulWidget {
   final int workoutKey;
   final StorageService db;
-  const ExercisesScreen({Key? key, required this.db, required this.workoutKey})
-      : super(key: key);
+  const ExercisesScreen({Key? key, required this.db, required this.workoutKey}) : super(key: key);
 
   @override
   State<ExercisesScreen> createState() => _ExercisesScreenState();
@@ -26,8 +23,6 @@ class ExercisesScreen extends StatefulWidget {
 
 class _ExercisesScreenState extends State<ExercisesScreen> {
   late Workout _w;
-  var _currentView = WorkoutView.staticList;
-  late Widget _child;
   bool _invalid = false;
 
   Future<bool> _onPop() async {
@@ -44,11 +39,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ),
               actions: <Widget>[
                 TextButton(
-                    child: Text(l10n.yesBtn),
-                    onPressed: () => Navigator.of(context).pop(true)),
+                    child: Text(l10n.yesBtn), onPressed: () => Navigator.of(context).pop(true)),
                 TextButton(
-                    child: Text(l10n.noBtn),
-                    onPressed: () => Navigator.of(context).pop(false)),
+                    child: Text(l10n.noBtn), onPressed: () => Navigator.of(context).pop(false)),
               ],
             );
           },
@@ -82,26 +75,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       return;
     }
     _w = workout;
-    _child = StaticExerciseList(exercises: _w.exercises);
   }
 
-  void _returnToStaticList() {
-    setState(() {
-      _currentView = WorkoutView.staticList;
-      _child = StaticExerciseList(exercises: _w.exercises);
-    });
-  }
-
-  String _getAppBarTitle(BuildContext context, WorkoutView view) {
-    final l10n = AppLocalizations.of(context);
-    switch (view) {
-      case WorkoutView.staticList:
-        return _w.name;
-      case WorkoutView.editWorkout:
-        return l10n.editWorkoutTitle;
-      case WorkoutView.editExercise:
-        return l10n.editExercisesTitle;
-    }
+  Future<void> _openEditor(WidgetBuilder builder) async {
+    await Navigator.push(
+        context, MaterialPageRoute<void>(fullscreenDialog: true, builder: builder));
+    if (!mounted) return;
+    final workout = widget.db.getWorkout(widget.workoutKey);
+    if (workout != null) setState(() => _w = workout);
   }
 
   @override
@@ -114,88 +95,76 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
         appBar: AppBar(
-            leading: _currentView == WorkoutView.staticList
-                ? BackButton()
-                : IconButton(onPressed: _returnToStaticList, icon: Icon(Icons.close)),
+            leading: BackButton(),
             backgroundColor: Colors.transparent,
             elevation: 0,
-            title: Text(_getAppBarTitle(context, _currentView),
+            title: Text(_w.name,
                 style: TextStyle(fontFamily: "EthosNova", fontWeight: FontWeight.bold)),
-            actions: _currentView == WorkoutView.staticList
-                ? [
-                    PopupMenuButton<WorkoutAction>(
-                        offset: Offset.fromDirection(90, 50),
-                        onSelected: (value) async {
-                          switch (value) {
-                            case WorkoutAction.editWorkout:
-                              setState(() {
-                                _currentView = WorkoutView.editWorkout;
-                                _child = EditWorkoutScreen(
-                                    workout: _w,
-                                    workoutNames: widget.db.getAllWorkoutNames(),
-                                    workoutKey: widget.workoutKey,
-                                    updateWorkoutName: widget.db.updateWorkoutName,
-                                    updateWorkoutExercises: widget.db.updateWorkoutExercises,
-                                    returnToStaticList: _returnToStaticList,
-                                    onPop: _onPop);
-                              });
-                              break;
-                            case WorkoutAction.editExercise:
-                              setState(() {
-                                _currentView = WorkoutView.editExercise;
-                                _child = EditExercisesScreen(
-                                    exercises: _w.exercises,
-                                    updateWorkoutExercises: widget.db.updateWorkoutExercises,
-                                    workoutKey: widget.workoutKey,
-                                    returnToStaticList: _returnToStaticList,
-                                    onPop: _onPop);
-                              });
-                              break;
-                            case WorkoutAction.exportWorkout:
-                              var error = await WorkoutBackupService(widget.db).exportWorkout(_w);
-                              if (error != null) {
-                                _showErrorSnackbar(exportErrorMessage(context, error));
-                              }
-                              break;
-                            case WorkoutAction.deleteWorkout:
-                              await _confirmAndDeleteWorkout(widget.workoutKey).then((value) {
-                                if (value) Navigator.pop(context);
-                              });
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
-                              PopupMenuItem<WorkoutAction>(
-                                child: IconTextItem(
-                                  icon: Icons.reorder,
-                                  text: l10n.editWorkoutTitle,
-                                ),
-                                value: WorkoutAction.editWorkout,
-                              ),
-                              PopupMenuItem<WorkoutAction>(
-                                child: IconTextItem(
-                                  icon: Icons.edit,
-                                  text: l10n.editExercisesTitle,
-                                ),
-                                value: WorkoutAction.editExercise,
-                              ),
-                              PopupMenuItem<WorkoutAction>(
-                                child: IconTextItem(
-                                  icon: Icons.download,
-                                  text: l10n.exportMenuItem,
-                                ),
-                                value: WorkoutAction.exportWorkout,
-                              ),
-                              PopupMenuItem<WorkoutAction>(
-                                child: IconTextItem(
-                                  icon: Icons.delete,
-                                  text: l10n.deleteWorkoutMenuItem,
-                                ),
-                                value: WorkoutAction.deleteWorkout,
-                              ),
-                            ]),
-                  ]
-                : []),
-        body: _child);
+            actions: [
+              PopupMenuButton<WorkoutAction>(
+                  offset: Offset.fromDirection(90, 50),
+                  onSelected: (value) async {
+                    switch (value) {
+                      case WorkoutAction.editWorkout:
+                        await _openEditor((_) => EditWorkoutScreen(
+                            workout: _w,
+                            workoutNames: widget.db.getAllWorkoutNames(),
+                            workoutKey: widget.workoutKey,
+                            updateWorkoutName: widget.db.updateWorkoutName,
+                            updateWorkoutExercises: widget.db.updateWorkoutExercises,
+                            onPop: _onPop));
+                        break;
+                      case WorkoutAction.editExercise:
+                        await _openEditor((_) => EditExercisesScreen(
+                            exercises: _w.exercises,
+                            updateWorkoutExercises: widget.db.updateWorkoutExercises,
+                            workoutKey: widget.workoutKey,
+                            onPop: _onPop));
+                        break;
+                      case WorkoutAction.exportWorkout:
+                        var error = await WorkoutBackupService(widget.db).exportWorkout(_w);
+                        if (error != null) {
+                          _showErrorSnackbar(exportErrorMessage(context, error));
+                        }
+                        break;
+                      case WorkoutAction.deleteWorkout:
+                        await _confirmAndDeleteWorkout(widget.workoutKey).then((value) {
+                          if (value) Navigator.pop(context);
+                        });
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
+                        PopupMenuItem<WorkoutAction>(
+                          child: IconTextItem(
+                            icon: Icons.reorder,
+                            text: l10n.editWorkoutTitle,
+                          ),
+                          value: WorkoutAction.editWorkout,
+                        ),
+                        PopupMenuItem<WorkoutAction>(
+                          child: IconTextItem(
+                            icon: Icons.edit,
+                            text: l10n.editExercisesTitle,
+                          ),
+                          value: WorkoutAction.editExercise,
+                        ),
+                        PopupMenuItem<WorkoutAction>(
+                          child: IconTextItem(
+                            icon: Icons.download,
+                            text: l10n.exportMenuItem,
+                          ),
+                          value: WorkoutAction.exportWorkout,
+                        ),
+                        PopupMenuItem<WorkoutAction>(
+                          child: IconTextItem(
+                            icon: Icons.delete,
+                            text: l10n.deleteWorkoutMenuItem,
+                          ),
+                          value: WorkoutAction.deleteWorkout,
+                        ),
+                      ]),
+            ]),
+        body: StaticExerciseList(exercises: _w.exercises));
   }
 }

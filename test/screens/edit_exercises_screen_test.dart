@@ -98,25 +98,36 @@ void main() {
     await _save(tester);
 
     expect(editor.savedNames, ['Push-ups', 'Squats']);
+    expect(find.text('Plank deleted'), findsNothing,
+        reason: 'the Undo snackbar must not outlive the screen');
   });
 
-  testWidgets('rows expose a Delete semantics action', (tester) async {
+
+  testWidgets('close without changes leaves without asking', (tester) async {
     final editor = _EditorHarness();
     await editor.pump(tester);
 
-    final semantics = tester.widgetList<Semantics>(find.byType(Semantics)).firstWhere((s) =>
-        s.properties.customSemanticsActions?.keys.any((a) => a.label == 'Delete') ?? false);
-    semantics.properties.customSemanticsActions!.values.single();
+    await tester.tap(find.byType(CloseButton));
     await tester.pumpAndSettle();
 
-    expect(find.text('Plank'), findsNothing);
+    expect(editor.popPrompts, 0);
+    expect(find.byType(EditExercisesScreen), findsNothing);
   });
 
-  testWidgets('shows a hint when there are no exercises', (tester) async {
-    final editor = _EditorHarness(count: 0);
+  testWidgets('close with changes discards them without asking', (tester) async {
+    final editor = _EditorHarness();
     await editor.pump(tester);
 
-    expect(find.text('No exercises yet. Tap + to add one.'), findsOneWidget);
+    await tester.drag(find.text('Plank'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(CloseButton));
+    await tester.pumpAndSettle();
+
+    expect(editor.popPrompts, 0);
+    expect(find.byType(EditExercisesScreen), findsNothing);
+    expect(find.text('Plank deleted'), findsNothing);
+    expect(editor.writes, isEmpty);
+    editor.expectOriginalsUnchanged();
   });
 
   testWidgets('back without changes leaves without asking', (tester) async {
@@ -130,7 +141,7 @@ void main() {
     expect(find.byType(EditExercisesScreen), findsNothing);
   });
 
-  testWidgets('back with changes asks to discard', (tester) async {
+  testWidgets('back with changes asks, and stays when not confirmed', (tester) async {
     final editor = _EditorHarness();
     await editor.pump(tester);
 
@@ -143,7 +154,25 @@ void main() {
     expect(find.byType(EditExercisesScreen), findsOneWidget);
     expect(editor.writes, isEmpty);
   });
+
+  testWidgets('back with changes discards them when confirmed', (tester) async {
+    final editor = _EditorHarness(confirmDiscard: true);
+    await editor.pump(tester);
+
+    await tester.drag(find.text('Plank'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(editor.popPrompts, 1);
+    expect(find.byType(EditExercisesScreen), findsNothing);
+    expect(find.text('Plank deleted'), findsNothing);
+    expect(editor.writes, isEmpty);
+    editor.expectOriginalsUnchanged();
+  });
 }
+
+const _homeText = 'home';
 
 Finder _sheetField(int index) =>
     find.descendant(of: find.byType(ExerciseSheet), matching: find.byType(TextField)).at(index);
@@ -154,7 +183,7 @@ Future<void> _tapSheetDone(WidgetTester tester) async {
 }
 
 Future<void> _save(WidgetTester tester) async {
-  await tester.tap(find.widgetWithText(ElevatedButton, 'Save'));
+  await tester.tap(find.descendant(of: find.byType(AppBar), matching: find.text('Save')));
   await tester.pumpAndSettle();
 }
 
@@ -166,12 +195,12 @@ final _defaultExercises = <Exercise Function()>[
 
 class _EditorHarness {
   final List<Exercise> exercises;
+  final bool confirmDiscard;
   final writes = <List<Exercise>>[];
   late final List<String> _originalValues = _values;
-  int returns = 0;
   int popPrompts = 0;
 
-  _EditorHarness({int? count, Exercise Function(int)? makeExercise})
+  _EditorHarness({int? count, Exercise Function(int)? makeExercise, this.confirmDiscard = false})
       : exercises = makeExercise != null
             ? List.generate(count!, makeExercise)
             : _defaultExercises.take(count ?? _defaultExercises.length).map((f) => f()).toList();
@@ -183,20 +212,22 @@ class _EditorHarness {
   Future<void> pump(WidgetTester tester) async {
     // Snapshot before any interaction.
     _originalValues;
-    await tester.pumpWidget(localizedApp(EditExercisesScreen(
-      workoutKey: 42,
-      exercises: exercises,
-      updateWorkoutExercises: (key, newExercises) async {
-        expect(key, 42);
-        writes.add(newExercises);
-        return Workout('w', newExercises);
-      },
-      returnToStaticList: () => returns++,
-      onPop: () async {
-        popPrompts++;
-        return false;
-      },
-    )));
+    await tester.pumpWidget(localizedApp(const Scaffold(body: Text(_homeText))));
+    tester.state<NavigatorState>(find.byType(Navigator)).push(MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => EditExercisesScreen(
+              workoutKey: 42,
+              exercises: exercises,
+              updateWorkoutExercises: (key, newExercises) async {
+                expect(key, 42);
+                writes.add(newExercises);
+                return Workout('w', newExercises);
+              },
+              onPop: () async {
+                popPrompts++;
+                return confirmDiscard;
+              },
+            )));
     await tester.pumpAndSettle();
   }
 

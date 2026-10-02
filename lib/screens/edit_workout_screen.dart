@@ -12,7 +12,6 @@ class EditWorkoutScreen extends StatefulWidget {
   final Future<Workout?> Function(int key, String name) updateWorkoutName;
   final Future<Workout?> Function(int key, List<Exercise> newExercises)
       updateWorkoutExercises;
-  final void Function() returnToStaticList;
   final Future<bool> Function() onPop;
 
   const EditWorkoutScreen(
@@ -22,7 +21,6 @@ class EditWorkoutScreen extends StatefulWidget {
       required this.workoutKey,
       required this.updateWorkoutName,
       required this.updateWorkoutExercises,
-      required this.returnToStaticList,
       required this.onPop})
       : super(key: key);
 
@@ -43,29 +41,60 @@ class _EditWorkoutScreenState extends State<EditWorkoutScreen> {
     _ex = <Exercise>[...widget.workout.exercises];
   }
 
+  bool get _hasChanges =>
+      widget.workout.name != _name || !listEquals(widget.workout.exercises, _ex);
+
   void _onPopInvoked(bool didPop, Object? result) async {
     if (didPop) {
       return;
     }
-    final shouldPop = (widget.workout.name != _name ||
-            !listEquals(widget.workout.exercises, _ex))
-        ? await widget.onPop()
-        : true;
-
-    if (shouldPop && context.mounted) {
+    if (await widget.onPop() && context.mounted) {
       Navigator.of(context).pop();
     }
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    _formKey.currentState!.save();
+    if (widget.workout.name != _name) {
+      await widget.updateWorkoutName(widget.workoutKey, _name);
+    }
+    if (!listEquals(widget.workout.exercises, _ex))
+      await widget.updateWorkoutExercises(widget.workoutKey, _ex);
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return PopScope(
-        canPop: false,
+        // Leaving without changes needs no confirmation (and allows predictive back).
+        canPop: !_hasChanges,
         onPopInvokedWithResult: _onPopInvoked,
         child: Scaffold(
             backgroundColor:
                 Theme.of(context).colorScheme.surfaceContainerLowest,
+            appBar: AppBar(
+              leading: CloseButton(onPressed: () => Navigator.of(context).pop()),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: Text(l10n.editWorkoutTitle,
+                  style: TextStyle(fontFamily: "EthosNova", fontWeight: FontWeight.bold)),
+              actions: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(visualDensity: VisualDensity(vertical: -1)),
+                      onPressed: _save,
+                      child: Text(l10n.saveBtn),
+                    ),
+                  ),
+                ),
+              ],
+            ),
             body: Padding(
                 padding: EdgeInsets.only(bottom: 16),
                 child: Column(
@@ -98,7 +127,7 @@ class _EditWorkoutScreenState extends State<EditWorkoutScreen> {
                                         labelText: l10n.workoutNameLabel,
                                         fillColor: Colors.white70),
                                     onChanged: (value) {
-                                      _name = value;
+                                      setState(() => _name = value);
                                     },
                                     onSaved: (value) {
                                       _name = value!;
@@ -145,21 +174,6 @@ class _EditWorkoutScreenState extends State<EditWorkoutScreen> {
                                   _ex.insert(newIndex, item);
                                 });
                               })),
-                      ElevatedButton(
-                          onPressed: () async {
-                            var valid = _formKey.currentState!.validate();
-                            if (!valid) {
-                              return;
-                            }
-                            _formKey.currentState!.save();
-                            if (widget.workout.name != _name) {
-                              await widget.updateWorkoutName(widget.workoutKey, _name);
-                            }
-                            if (!listEquals(widget.workout.exercises, _ex))
-                              await widget.updateWorkoutExercises(widget.workoutKey, _ex);
-                            widget.returnToStaticList();
-                          },
-                          child: Text(l10n.saveBtn))
                     ]))));
   }
 }

@@ -14,12 +14,10 @@ class EditExercisesScreen extends StatefulWidget {
   final int workoutKey;
   final List<Exercise> exercises;
   final Future<Workout?> Function(int key, List<Exercise> newExercises) updateWorkoutExercises;
-  final void Function() returnToStaticList;
   final Future<bool> Function() onPop;
   const EditExercisesScreen(
       {Key? key,
       required this.updateWorkoutExercises,
-      required this.returnToStaticList,
       required this.onPop,
       required this.workoutKey,
       required this.exercises})
@@ -75,17 +73,19 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
   }
 
   Future<void> _save() async {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     if (_hasChanges) {
       await widget.updateWorkoutExercises(widget.workoutKey, List.of(_exercises));
     }
-    if (mounted) widget.returnToStaticList();
+    if (mounted) Navigator.of(context).pop();
   }
 
   void _onPopInvoked(bool didPop, Object? result) async {
-    if (didPop) return;
-    final shouldPop = _hasChanges ? await widget.onPop() : true;
-    if (shouldPop && context.mounted) {
+    if (didPop) {
+      // Otherwise an Undo snackbar would outlive this screen.
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      return;
+    }
+    if (await widget.onPop() && context.mounted) {
       Navigator.of(context).pop();
     }
   }
@@ -123,10 +123,29 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return PopScope(
-        canPop: false,
+        canPop: !_hasChanges,
         onPopInvokedWithResult: _onPopInvoked,
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+          appBar: AppBar(
+            leading: CloseButton(onPressed: () => Navigator.of(context).pop()),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(l10n.editExercisesTitle,
+                style: TextStyle(fontFamily: "EthosNova", fontWeight: FontWeight.bold)),
+            actions: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(visualDensity: VisualDensity(vertical: -1)),
+                    onPressed: _save,
+                    child: Text(l10n.saveBtn),
+                  ),
+                ),
+              ),
+            ],
+          ),
           floatingActionButton: FloatingActionButton(
             shape: StadiumBorder(),
             tooltip: l10n.addExerciseTooltip,
@@ -135,27 +154,15 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
           ),
           body: SafeArea(
               child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: _exercises.isEmpty
-                            ? Center(child: Text(l10n.noExercisesHint))
-                            : ListView.builder(
-                                padding: const EdgeInsets.only(bottom: 80),
-                                itemCount: _exercises.length,
-                                itemBuilder: _buildRow,
-                              ),
-                      ),
-                      SizedBox(
-                        width: 75,
-                        child: ElevatedButton(
-                          onPressed: _save,
-                          child: Text(l10n.saveBtn),
-                        ),
-                      ),
-                    ],
-                  ))),
+            padding: EdgeInsets.all(16),
+            child: _exercises.isEmpty
+                ? Center(child: Text(l10n.noExercisesHint))
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    itemCount: _exercises.length,
+                    itemBuilder: _buildRow,
+                  ),
+          )),
         ));
   }
 }
