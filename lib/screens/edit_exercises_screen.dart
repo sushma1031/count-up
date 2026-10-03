@@ -7,6 +7,7 @@ import 'package:count_up/widgets/exercise_item.dart';
 import 'package:count_up/widgets/exercise_sheet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:count_up/utils/assets.dart';
 import 'package:flutter/semantics.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
@@ -15,12 +16,14 @@ class EditExercisesScreen extends StatefulWidget {
   final List<Exercise> exercises;
   final Future<Workout?> Function(int key, List<Exercise> newExercises) updateWorkoutExercises;
   final Future<bool> Function() onPop;
+  final bool initiallyOpenSheet;
   const EditExercisesScreen(
       {Key? key,
       required this.updateWorkoutExercises,
       required this.onPop,
       required this.workoutKey,
-      required this.exercises})
+      required this.exercises,
+      this.initiallyOpenSheet = false})
       : super(key: key);
 
   @override
@@ -31,6 +34,12 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
   late final List<Exercise> _exercises = List.of(widget.exercises);
 
   bool get _hasChanges => !listEquals(widget.exercises, _exercises);
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initiallyOpenSheet) WidgetsBinding.instance.addPostFrameCallback((_) => _add());
+  }
 
   void _showSnackBar(SnackBar snackBar) {
     ScaffoldMessenger.of(context)
@@ -70,6 +79,13 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
         },
       ),
     ));
+  }
+
+  void _reorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (oldIndex < newIndex) newIndex -= 1;
+      _exercises.insert(newIndex, _exercises.removeAt(oldIndex));
+    });
   }
 
   Future<void> _save() async {
@@ -113,6 +129,10 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
           leading: Text('${index + 1}.', style: const TextStyle(fontSize: 16)),
           minLeadingWidth: 24,
           title: ExerciseItem(exercise: exercise),
+          trailing: ReorderableDragStartListener(
+            index: index,
+            child: Icon(Icons.drag_handle, color: Colors.white.withValues(alpha: 0.7)),
+          ),
           onTap: () => _edit(index),
         ),
       ),
@@ -157,10 +177,12 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
             padding: EdgeInsets.all(16),
             child: _exercises.isEmpty
                 ? Center(child: Text(l10n.noExercisesHint))
-                : ListView.builder(
+                : ReorderableListView.builder(
+                    buildDefaultDragHandles: false,
                     padding: const EdgeInsets.only(bottom: 80),
                     itemCount: _exercises.length,
                     itemBuilder: _buildRow,
+                    onReorder: _reorder,
                   ),
           )),
         ));

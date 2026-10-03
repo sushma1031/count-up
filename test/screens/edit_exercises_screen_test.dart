@@ -57,6 +57,13 @@ void main() {
     expect(editor.savedNames, ['Plank', 'Push-ups', 'Squats', 'Lunges']);
   });
 
+  testWidgets('initiallyOpenSheet opens the add sheet on arrival', (tester) async {
+    final editor = _EditorHarness(count: 0, initiallyOpenSheet: true);
+    await editor.pump(tester);
+
+    expect(find.text('Add Exercise'), findsOneWidget);
+  });
+
   testWidgets('FAB at the exercise limit shows an error instead of the sheet', (tester) async {
     final editor = _EditorHarness(
         count: maxExercisesPerWorkout, makeExercise: (i) => DurationExercise('Ex $i', 10));
@@ -102,17 +109,27 @@ void main() {
         reason: 'the Undo snackbar must not outlive the screen');
   });
 
-
-  testWidgets('close without changes leaves without asking', (tester) async {
+  testWidgets(
+      'drag handle reorders and renumbers rows correctly, and Save persists the changes',
+      (tester) async {
     final editor = _EditorHarness();
     await editor.pump(tester);
 
-    await tester.tap(find.byType(CloseButton));
-    await tester.pumpAndSettle();
+    await _dragHandle(tester, 0, const Offset(0, 200));
 
-    expect(editor.popPrompts, 0);
-    expect(find.byType(EditExercisesScreen), findsNothing);
+    final tile = find.ancestor(of: find.text('Plank'), matching: find.byType(ListTile));
+    expect(find.descendant(of: tile, matching: find.text('3.')), findsOneWidget);
+    expect(editor.writes, isEmpty);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(editor.popPrompts, 1, reason: 'a reorder is an unsaved change');
+
+    await _save(tester);
+    expect(editor.savedNames, ['Push-ups', 'Squats', 'Plank']);
+    editor.expectOriginalsUnchanged();
   });
+
 
   testWidgets('close with changes discards them without asking', (tester) async {
     final editor = _EditorHarness();
@@ -177,6 +194,18 @@ const _homeText = 'home';
 Finder _sheetField(int index) =>
     find.descendant(of: find.byType(ExerciseSheet), matching: find.byType(TextField)).at(index);
 
+Future<void> _dragHandle(WidgetTester tester, int index, Offset by) async {
+  final gesture =
+      await tester.startGesture(tester.getCenter(find.byIcon(Icons.drag_handle).at(index)));
+  await tester.pump();
+  for (int i = 0; i < 10; i++) {
+    await gesture.moveBy(by / 10);
+    await tester.pump();
+  }
+  await gesture.up();
+  await tester.pumpAndSettle();
+}
+
 Future<void> _tapSheetDone(WidgetTester tester) async {
   await tester.tap(find.text('Done'));
   await tester.pumpAndSettle();
@@ -196,11 +225,16 @@ final _defaultExercises = <Exercise Function()>[
 class _EditorHarness {
   final List<Exercise> exercises;
   final bool confirmDiscard;
+  final bool initiallyOpenSheet;
   final writes = <List<Exercise>>[];
   late final List<String> _originalValues = _values;
   int popPrompts = 0;
 
-  _EditorHarness({int? count, Exercise Function(int)? makeExercise, this.confirmDiscard = false})
+  _EditorHarness(
+      {int? count,
+      Exercise Function(int)? makeExercise,
+      this.confirmDiscard = false,
+      this.initiallyOpenSheet = false})
       : exercises = makeExercise != null
             ? List.generate(count!, makeExercise)
             : _defaultExercises.take(count ?? _defaultExercises.length).map((f) => f()).toList();
@@ -227,6 +261,7 @@ class _EditorHarness {
                 popPrompts++;
                 return confirmDiscard;
               },
+              initiallyOpenSheet: initiallyOpenSheet,
             )));
     await tester.pumpAndSettle();
   }
