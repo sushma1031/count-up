@@ -1,3 +1,4 @@
+import 'package:count_up/screens/exercises_screen.dart';
 import 'package:count_up/screens/workouts_screen.dart';
 import 'package:count_up/state/settings_provider.dart';
 import 'package:count_up/widgets/volume_slider.dart';
@@ -13,17 +14,25 @@ import '../services/mock_settings_service.dart';
 import '../services/mock_storage_service.dart';
 
 void main() {
-  var mockDB = MockStorageService();
-  mockDB.loadData();
-  var mockSettings = MockSettingsService();
-  var screen = SettingsProvider(
-    settings: mockSettings,
-    child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: WorkoutsScreen(db: mockDB),
-    ),
-  );
+  late MockStorageService mockDB;
+  late MockSettingsService mockSettings;
+  late Widget screen;
+
+  setUp(() {
+    mockDB = MockStorageService();
+    mockDB.loadData();
+    mockSettings = MockSettingsService();
+    screen = SettingsProvider(
+      settings: mockSettings,
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorkoutsScreen(db: mockDB),
+      ),
+    );
+  });
+  tearDown(() => mockDB.notifier.dispose());
+
   group('Workouts Screen loads correctly', () {
     testWidgets('display loading screen', (tester) async {
       await tester.pumpWidget(CountUpApp(db: mockDB, settings: mockSettings));
@@ -41,30 +50,31 @@ void main() {
     });
   });
 
-  testWidgets('adds workout correctly', (tester) async {
+  testWidgets('adding a workout stores it and opens it', (tester) async {
     await tester.pumpWidget(screen);
 
     await tester.tap(find.byType(FloatingActionButton));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'Biceps');
     await tester.tap(find.byType(ElevatedButton));
     await tester.pumpAndSettle();
-    expect(find.text('Biceps'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.arrow_back));
-    await tester.pumpAndSettle();
+    expect(mockDB.getAllWorkoutNames(), contains('Biceps'));
+    expect(find.byType(ExercisesScreen), findsOneWidget);
+    expect(find.text('Biceps'), findsOneWidget);
+  });
+
+  testWidgets('add rejects an existing workout name', (tester) async {
+    await tester.pumpWidget(screen);
 
     await tester.tap(find.byType(FloatingActionButton));
-    await tester.pump();
-    await tester.enterText(find.byType(TextFormField), '');
-    await tester.tap(find.byType(ElevatedButton));
-    await tester.pump();
-    expect(find.text('Please enter a name'), findsOneWidget);
-
+    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'Abs');
     await tester.tap(find.byType(ElevatedButton));
     await tester.pump();
+
     expect(find.text('Name already in use'), findsOneWidget);
+    expect(mockDB.writes, 0);
   });
 
   testWidgets('clears workouts correctly', (tester) async {

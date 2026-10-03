@@ -32,8 +32,6 @@ void main() {
     final provider =
         tester.widget<WorkoutProvider>(find.byType(WorkoutProvider));
     expect(provider.timerVolume, 0.5);
-    expect(player.volume, 0.5);
-
     expect(player.configured, true);
     expect(player.volume, 0.5);
   });
