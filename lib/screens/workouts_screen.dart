@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:count_up/utils/assets.dart';
 import 'package:count_up/screens/exercises_screen.dart';
 import 'package:count_up/models/workout_display.dart';
 import 'package:count_up/widgets/workout_card.dart';
 import 'package:count_up/widgets/settings_dialog.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/utils/errors.dart';
-import '../widgets/workout_form.dart';
+import '../widgets/workout_name_form.dart';
 import '../services/storage_service.dart';
 import '../services/workout_backup_service.dart';
 import '../state/settings_provider.dart';
@@ -125,12 +126,12 @@ class WorkoutsScreen extends StatelessWidget {
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  content: WorkoutForm(
-                    addWorkout: db.addEmptyWorkout,
-                    isUnique: (name) {
-                      if (!db.getAllWorkoutNames().contains(name)) return true;
-                      return false;
-                    },
+                  content: WorkoutNameForm(
+                    initial: '',
+                    label: l10n.newWorkoutLabel,
+                    submitLabel: l10n.addBtn,
+                    onSubmit: db.addEmptyWorkout,
+                    existingNames: db.getAllWorkoutNames(),
                   ),
                   elevation: 24,
                 );

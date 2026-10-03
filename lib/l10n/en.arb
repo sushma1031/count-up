@@ -64,13 +64,13 @@
   "exportErrorFS": "Failed to save the workout file.",
   "exportErrorPlatform": "Could not open share interface.",
   "exportErrorUnknown": "Something went wrong while exporting.",
-  "editWorkoutTitle": "Edit Workout",
   "editExercisesTitle": "Edit Exercises",
+  "renameWorkoutTooltip": "Rename workout",
+  "renameWorkoutLabel": "Rename Workout",
   "exportMenuItem": "Export",
   "deleteWorkoutMenuItem": "Delete Workout",
-  "workoutNameRequired": "Please enter a workout name",
   "workoutNameAlreadyInUse": "Name already in use",
-  "workoutNameLabel": "Workout Name",
+
   "saveBtn": "Save",
   "nameRequired": "Please enter a name",
   "newWorkoutLabel": "New Workout",
@@ -94,7 +94,8 @@
   "nextTooltip": "Next",
   "doneTooltip": "Done",
   "timerScreenTitle": "Timer",
-  "startWorkoutBtn": "Start Workout",
+  "startWorkoutTooltip": "Start workout",
+  "addExercisesBtn": "Add Exercises",
   "workoutCompleteMessage1": "You did something today that your future self will be thankful for!",
   "workoutCompleteMessage2": "Keep doing what you have to do so you can do what you want to do.",
   "workoutCompleteMessage3": "Some days you wish it would happen, today you made it happen!",
@@ -147,7 +148,7 @@
   "exerciseDurationHint": "Seconds",
   "exerciseRepsHint": "Reps",
   "addExerciseTooltip": "Add exercise",
-  "noExercisesHint": "No exercises yet. Tap + to add one.",
+  "noExercisesHint": "No exercises yet.",
   "exerciseDeletedMessage": "{name} deleted",
   "@exerciseDeletedMessage": {
     "placeholders": {
@@ -157,6 +158,5 @@
     }
   },
   "undoBtn": "Undo",
-  "deleteExerciseAction": "Delete",
-  "emptyWorkoutHint": "Empty workout."
+  "deleteExerciseAction": "Delete"
 }

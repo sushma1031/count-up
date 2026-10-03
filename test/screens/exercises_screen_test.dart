@@ -1,8 +1,9 @@
 import 'package:count_up/models/exercise.dart';
 import 'package:count_up/models/workout.dart';
 import 'package:count_up/screens/edit_exercises_screen.dart';
-import 'package:count_up/screens/edit_workout_screen.dart';
 import 'package:count_up/screens/exercises_screen.dart';
+import 'package:count_up/widgets/workout_name_form.dart';
+import 'package:count_up/widgets/exercise_sheet.dart';
 import 'package:count_up/widgets/static_exercises_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,27 +31,29 @@ Future<void> _tapAppBarSave(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> _openRename(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('Rename workout'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _renameTo(WidgetTester tester, String name) async {
+  await _openRename(tester);
+  await tester.enterText(find.byType(TextFormField), name);
+  await tester.tap(
+      find.descendant(of: find.byType(WorkoutNameForm), matching: find.text('Save')));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   late MockStorageService db;
 
   setUp(() => db = MockStorageService());
   tearDown(() => db.notifier.dispose());
 
-  testWidgets('menu has Edit Exercises and no separate add entry', (tester) async {
-    await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
-
-    await tester.tap(find.byWidgetPredicate((w) => w is PopupMenuButton<WorkoutAction>));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Edit Exercises'), findsOneWidget);
-    expect(find.text('Add Exercises'), findsNothing);
-  });
 
   testWidgets('exercises added in Edit Exercises are persisted on Save',
       (tester) async {
     final workoutKey = await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
-    var mutations = 0;
-    db.getListenable().addListener(() => mutations++);
 
     await _openMenuItem(tester, WorkoutAction.editExercise);
     expect(find.byType(EditExercisesScreen), findsOneWidget);
@@ -64,11 +67,9 @@ void main() {
     await tester.enterText(fields.at(1), '15');
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
-    expect(mutations, 0);
 
     await _tapAppBarSave(tester);
 
-    expect(mutations, isNonZero);
     final saved = db.getWorkout(workoutKey)!.exercises;
     expect(saved.map((e) => e.name), ['Plank', 'Push-ups']);
     expect((saved[1] as RepExercise).reps, 15);
@@ -77,10 +78,32 @@ void main() {
     expect(find.text('15 reps'), findsOneWidget);
   });
 
+  testWidgets('empty workout offers Add Exercises, which opens Edit Exercises with the add sheet',
+      (tester) async {
+    await _pumpScreen(tester, db, []);
+
+    expect(find.byTooltip('Start workout'), findsNothing);
+    await tester.tap(find.widgetWithText(FloatingActionButton, 'Add Exercises'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EditExercisesScreen), findsOneWidget);
+    expect(find.byType(ExerciseSheet), findsOneWidget);
+  });
+
+  testWidgets('workout with exercises offers a Start workout FAB', (tester) async {
+    await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
+
+    final fab = find.byType(FloatingActionButton);
+    expect(find.descendant(of: fab, matching: find.byIcon(Icons.play_arrow)), findsOneWidget);
+    expect(find.byTooltip('Start workout'), findsOneWidget);
+    expect(find.text('Add Exercises'), findsNothing);
+  });
+
   testWidgets('closing Edit Exercises without changes returns to the list', (tester) async {
     await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
     await _openMenuItem(tester, WorkoutAction.editExercise);
+    expect(find.byType(ExerciseSheet), findsNothing);
     await tester.tap(find.byType(CloseButton));
     await tester.pumpAndSettle();
 
@@ -89,47 +112,37 @@ void main() {
     expect(find.byType(StaticExerciseList), findsOneWidget);
   });
 
-  testWidgets('renaming in Edit Workout updates the title on Save', (tester) async {
+  testWidgets('renaming updates storage and the title', (tester) async {
     final workoutKey = await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
-    await _openMenuItem(tester, WorkoutAction.editWorkout);
-    expect(find.byType(EditWorkoutScreen), findsOneWidget);
-    await tester.enterText(find.byType(TextFormField), 'Core');
-    await _tapAppBarSave(tester);
+    await _renameTo(tester, 'Core');
 
     expect(db.getWorkout(workoutKey)!.name, 'Core');
-    expect(find.byType(EditWorkoutScreen), findsNothing);
-    expect(find.descendant(of: find.byType(AppBar), matching: find.text('Core')), findsOneWidget);
+    expect(find.byType(WorkoutNameForm), findsNothing);
+    expect(find.text('Core'), findsOneWidget);
   });
 
-  testWidgets('closing Edit Workout with changes discards them without asking', (tester) async {
+  testWidgets('rename rejects a name used by another workout', (tester) async {
+    await db.addWorkout(Workout('Legs', []));
     final workoutKey = await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
-    await _openMenuItem(tester, WorkoutAction.editWorkout);
-    await tester.enterText(find.byType(TextFormField), 'Core');
-    await tester.pump();
-    await tester.tap(find.byType(CloseButton));
-    await tester.pumpAndSettle();
+    await _renameTo(tester, 'Legs');
 
-    expect(find.byType(AlertDialog), findsNothing);
-    expect(find.byType(EditWorkoutScreen), findsNothing);
+    expect(find.text('Name already in use'), findsOneWidget);
+    expect(find.byType(WorkoutNameForm), findsOneWidget);
     expect(db.getWorkout(workoutKey)!.name, 'Workout');
   });
 
-  testWidgets('back from Edit Workout with changes asks to discard', (tester) async {
+
+  testWidgets('dismissing the rename dialog preserves original name', (tester) async {
     final workoutKey = await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
-    await _openMenuItem(tester, WorkoutAction.editWorkout);
+    await _openRename(tester);
     await tester.enterText(find.byType(TextFormField), 'Core');
-    await tester.pump();
-    await tester.binding.handlePopRoute();
+    await tester.tapAt(const Offset(5, 5));
     await tester.pumpAndSettle();
 
-    expect(find.byType(AlertDialog), findsOneWidget);
-    await tester.tap(find.text('Yes'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(EditWorkoutScreen), findsNothing);
+    expect(find.byType(WorkoutNameForm), findsNothing);
     expect(db.getWorkout(workoutKey)!.name, 'Workout');
   });
 }
