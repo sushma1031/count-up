@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:count_up/utils/assets.dart';
 import 'package:count_up/widgets/scale_text_sequence.dart';
 import 'package:count_up/services/audio_service.dart';
 
@@ -44,7 +45,7 @@ class CountdownScreen extends StatelessWidget {
                   textSequence,
                   textStyle: TextStyle(
                     fontSize: fontSize,
-                    fontFamily: 'EthosNova',
+                    fontFamily: Assets.fontEthosNova,
                     fontWeight: FontWeight.bold,
                   ),
                   duration: stepDuration,

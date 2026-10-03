@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:count_up/utils/assets.dart';
 import 'package:count_up/models/workout_display.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
@@ -42,7 +43,7 @@ class WorkoutCard extends StatelessWidget {
                       padding: EdgeInsets.only(bottom: 8),
                       child: Text(
                         workout.name,
-                        style: TextStyle(fontSize: 25, fontFamily: "EthosNova"),
+                        style: TextStyle(fontSize: 25, fontFamily: Assets.fontEthosNova),
                       ),
                     ),
                     Row(

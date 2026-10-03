@@ -1,5 +1,6 @@
 import 'package:count_up/models/exercise.dart';
 import 'package:flutter/material.dart';
+import 'package:count_up/utils/assets.dart';
 import '../state/settings_provider.dart';
 import '../state/workout_provider.dart';
 import '../services/audio_service.dart';
@@ -22,7 +23,7 @@ class TimerScreen extends StatelessWidget {
         elevation: 0,
         title: Text(AppLocalizations.of(context).timerScreenTitle,
             style: TextStyle(
-                fontFamily: "EthosNova", fontWeight: FontWeight.bold)),
+                fontFamily: Assets.fontEthosNova, fontWeight: FontWeight.bold)),
       ),
       body: Center(
           child: WorkoutProvider(

@@ -50,7 +50,7 @@ class WorkoutComplete extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 52,
-                      fontFamily: "EthosNova",
+                      fontFamily: Assets.fontEthosNova,
                     ))),
             Padding(
                 padding: EdgeInsets.fromLTRB(16, 16, 16, 25),

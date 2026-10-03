@@ -66,7 +66,7 @@ class WorkoutsScreen extends StatelessWidget {
           elevation: 0,
           title: Text(
             l10n.workoutsScreenTitle,
-            style: TextStyle(fontFamily: "EthosNova", fontWeight: FontWeight.bold),
+            style: TextStyle(fontFamily: Assets.fontEthosNova, fontWeight: FontWeight.bold),
           ),
           actions: [
             IconButton(

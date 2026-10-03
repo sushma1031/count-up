@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:count_up/utils/assets.dart';
 import 'screens/workouts_screen.dart';
 import 'services/storage_service.dart';
 import 'services/settings_service.dart';
@@ -117,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                   l10n.splashTitle,
                   style: TextStyle(
                     fontSize: 40,
-                    fontFamily: "EthosNova",
+                    fontFamily: Assets.fontEthosNova,
                   ),
                 ),
               ),

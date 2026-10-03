@@ -132,7 +132,7 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: Text(l10n.editExercisesTitle,
-                style: TextStyle(fontFamily: "EthosNova", fontWeight: FontWeight.bold)),
+                style: TextStyle(fontFamily: Assets.fontEthosNova, fontWeight: FontWeight.bold)),
             actions: [
               Center(
                 child: Padding(
