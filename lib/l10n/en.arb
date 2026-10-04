@@ -23,7 +23,7 @@
   "yesBtn": "Yes",
   "noBtn": "No",
   "importErrorFormat": "Invalid file format.",
-  "importErrorType": "Workout structure is incompatible or malformed.",
+  "importErrorType": "One or more fields contain invalid or unexpected values.",
   "importErrorUnknownExerciseType": "Unsupported exercise type: {type}",
   "@importErrorUnknownExerciseType": {
     "placeholders": {
