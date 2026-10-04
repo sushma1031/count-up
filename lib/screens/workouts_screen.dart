@@ -86,9 +86,11 @@ class WorkoutsScreen extends StatelessWidget {
                 onSelected: (value) async {
                   switch (value) {
                     case WorkoutCollectionAction.importWorkout:
-                      var error = await _backup.importWorkout();
-                      if (error != null) {
-                        _showErrorSnackbar(context, importErrorMessage(context, error));
+                      final result = await _backup.importWorkout();
+                      if (result.error != null) {
+                        _showErrorSnackbar(context, importErrorMessage(context, result.error!));
+                      } else if (result.workoutKey != null) {
+                        _goToWorkout(context, result.workoutKey!);
                       }
                       break;
                     case WorkoutCollectionAction.deleteAll:

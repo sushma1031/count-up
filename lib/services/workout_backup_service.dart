@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:count_up/models/workout.dart';
+import 'package:count_up/models/import_result.dart';
 import 'package:count_up/utils/errors.dart';
 import 'package:count_up/utils/format.dart';
 import 'package:count_up/utils/workout_serialisation.dart';
@@ -15,38 +16,37 @@ class WorkoutBackupService {
 
   WorkoutBackupService(this.db);
 
-  Future<ImportError?> importWorkout() async {
+  Future<ImportResult> importWorkout() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
     if (result == null) {
-      return null;
+      return const ImportResult.cancelled();
     }
     File file = File(result.files.single.path!);
     String workoutJson = await file.readAsString();
     return importWorkoutJson(workoutJson);
   }
 
-  Future<ImportError?> importWorkoutJson(String workoutJson) async {
+  Future<ImportResult> importWorkoutJson(String workoutJson) async {
     try {
       var workout = importFromJson(workoutJson);
       if (workout.exercises.length > maxExercisesPerWorkout) {
-        return ImportError.exerciseLimit;
+        return const ImportResult.failure(ImportError.exerciseLimit);
       }
       workout.name =
           getUniqueWorkoutName(db.getAllWorkoutNames(), workout.name);
-      await db.addWorkout(workout);
-      return null;
+      return ImportResult.success(await db.addWorkout(workout));
     } on FormatException catch (e) {
       print('Invalid JSON: $e');
-      return ImportError.format;
+      return const ImportResult.failure(ImportError.format);
     } on TypeError catch (e) {
       print('Type error: $e');
-      return ImportError.type;
+      return const ImportResult.failure(ImportError.type);
     } catch (e) {
       print('Unexpected error: $e');
-      return ImportError.unknown;
+      return const ImportResult.failure(ImportError.unknown);
     }
   }
 

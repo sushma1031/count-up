@@ -34,18 +34,19 @@ void main() {
         ),
       });
 
-      final error =
+      final result =
           await WorkoutBackupService(db).importWorkoutJson(workoutJson);
 
       if (count > maxExercisesPerWorkout) {
-        expect(error, ImportError.exerciseLimit);
+        expect(result.error, ImportError.exerciseLimit);
+        expect(result.workoutKey, isNull);
         expect(db.writes, 0);
         expect(db.size, 1);
       } else {
-        expect(error, isNull);
+        expect(result.error, isNull);
         expect(db.writes, 1);
         expect(db.size, 2);
-        final imported = db.getAllWorkouts().last;
+        final imported = db.getWorkout(result.workoutKey!)!;
         expect(imported.name, 'Workout (1)');
         expect(imported.exercises, hasLength(count));
       }
@@ -56,20 +57,20 @@ void main() {
 
   test('malformed JSON returns a format error without accessing storage',
       () async {
-    final error = await WorkoutBackupService(db).importWorkoutJson('{');
+    final result = await WorkoutBackupService(db).importWorkoutJson('{');
 
-    expect(error, ImportError.format);
+    expect(result.error, ImportError.format);
     expect(db.writes, 0);
     expect(db.size, 1);
   });
 
   test('wrong structure returns a type error without accessing storage',
       () async {
-    final error = await WorkoutBackupService(db).importWorkoutJson(
+    final result = await WorkoutBackupService(db).importWorkoutJson(
       jsonEncode({'name': 10, 'exercises': 'not list'}),
     );
 
-    expect(error, ImportError.type);
+    expect(result.error, ImportError.type);
     expect(db.writes, 0);
     expect(db.size, 1);
   });
@@ -85,9 +86,9 @@ void main() {
       ],
     });
 
-    final error = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
+    final result = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
 
-    expect(error, ImportError.format);
+    expect(result.error, ImportError.format);
     expect(db.writes, 0);
     expect(db.size, 1);
   });
@@ -103,9 +104,9 @@ void main() {
       ],
     });
 
-    final error = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
+    final result = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
 
-    expect(error, ImportError.type);
+    expect(result.error, ImportError.type);
     expect(db.writes, 0);
     expect(db.size, 1);
   });
