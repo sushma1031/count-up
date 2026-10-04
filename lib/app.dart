@@ -7,6 +7,7 @@ import 'state/lifecycle_watcher.dart';
 import 'state/settings_provider.dart';
 import 'utils/color.dart';
 import 'utils/errors.dart';
+import 'utils/error_formatters.dart';
 import 'gen/l10n/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 

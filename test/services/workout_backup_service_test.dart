@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:count_up/models/workout.dart';
+import 'package:count_up/models/import_result.dart';
 import 'package:count_up/services/workout_backup_service.dart';
-import 'package:count_up/utils/errors.dart';
 import 'package:count_up/utils/workout_constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -88,7 +88,8 @@ void main() {
 
     final result = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
 
-    expect(result.error, ImportError.format);
+    expect(result.error, ImportError.unknownExerciseType);
+    expect(result.unknownExerciseType, 'burpee');
     expect(db.writes, 0);
     expect(db.size, 1);
   });

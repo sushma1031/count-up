@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:count_up/models/exercise.dart';
 import 'package:count_up/models/workout.dart';
 import 'package:count_up/models/import_result.dart';
 import 'package:count_up/utils/errors.dart';
@@ -38,6 +39,9 @@ class WorkoutBackupService {
       workout.name =
           getUniqueWorkoutName(db.getAllWorkoutNames(), workout.name);
       return ImportResult.success(await db.addWorkout(workout));
+    } on UnknownExerciseTypeException catch (e) {
+      print('Unknown exercise type: $e');
+      return ImportResult.unknownExerciseType(e.type);
     } on FormatException catch (e) {
       print('Invalid JSON: $e');
       return const ImportResult.failure(ImportError.format);

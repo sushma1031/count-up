@@ -132,7 +132,9 @@ void main() {
         }
         ''';
       expect(
-          () => importFromJson(json), throwsA(TypeMatcher<FormatException>()));
+          () => importFromJson(json),
+          throwsA(isA<UnknownExerciseTypeException>()
+              .having((e) => e.type, 'type', 'burpee')));
     });
 
     test('rejects a malformed rep count without a partial import', () {

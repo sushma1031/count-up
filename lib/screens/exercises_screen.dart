@@ -6,7 +6,7 @@ import 'package:count_up/services/storage_service.dart';
 import 'package:count_up/services/timer_audio_service.dart';
 import 'package:count_up/services/workout_backup_service.dart';
 import 'package:count_up/state/settings_provider.dart';
-import 'package:count_up/utils/errors.dart';
+import 'package:count_up/utils/error_formatters.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/widgets/icon_text_item.dart';
 import 'package:count_up/widgets/workout_name_form.dart';

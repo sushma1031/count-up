@@ -24,6 +24,14 @@
   "noBtn": "No",
   "importErrorFormat": "Invalid file format.",
   "importErrorType": "Workout structure is incompatible or malformed.",
+  "importErrorUnknownExerciseType": "Unsupported exercise type: {type}",
+  "@importErrorUnknownExerciseType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "importErrorUnknown": "Something went wrong while importing.",
   "workoutExerciseLimitError": "Exercises limit reached: {limit}",
   "@workoutExerciseLimitError": {

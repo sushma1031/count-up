@@ -5,7 +5,7 @@ import 'package:count_up/models/workout_display.dart';
 import 'package:count_up/widgets/workout_card.dart';
 import 'package:count_up/widgets/settings_dialog.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
-import 'package:count_up/utils/errors.dart';
+import 'package:count_up/utils/error_formatters.dart';
 import '../widgets/workout_name_form.dart';
 import '../services/storage_service.dart';
 import '../services/workout_backup_service.dart';
@@ -88,7 +88,7 @@ class WorkoutsScreen extends StatelessWidget {
                     case WorkoutCollectionAction.importWorkout:
                       final result = await _backup.importWorkout();
                       if (result.error != null) {
-                        _showErrorSnackbar(context, importErrorMessage(context, result.error!));
+                        _showErrorSnackbar(context, importErrorMessage(context, result));
                       } else if (result.workoutKey != null) {
                         _goToWorkout(context, result.workoutKey!);
                       }

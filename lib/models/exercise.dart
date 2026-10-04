@@ -28,7 +28,16 @@ abstract class Exercise extends HiveObject {
         // (exercises created before rep-based was introduced).
         return DurationExercise.fromJson(json);
       default:
-        throw FormatException('Unknown exercise type: $rawType');
+        throw UnknownExerciseTypeException(rawType!);
     }
   }
+}
+
+class UnknownExerciseTypeException implements Exception {
+  final String type;
+
+  const UnknownExerciseTypeException(this.type);
+
+  @override
+  String toString() => 'UnknownExerciseTypeException: $type';
 }
