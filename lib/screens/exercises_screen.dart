@@ -265,7 +265,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ],
             ),
           ),
-          Expanded(child: StaticExerciseList(exercises: _w.exercises)),
+          Expanded(child: SafeArea(top: false, child: StaticExerciseList(exercises: _w.exercises))),
         ]));
   }
 }
