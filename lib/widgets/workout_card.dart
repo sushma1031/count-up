@@ -15,10 +15,11 @@ class WorkoutCard extends StatelessWidget {
     Color primary = Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
     Color darkBase = Theme.of(context).colorScheme.surface;
     return Card(
-      elevation: 24,
+      color:
+          ElevationOverlay.colorWithOverlay(darkBase, Theme.of(context).colorScheme.onSurface, 24),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
+          borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -31,7 +32,7 @@ class WorkoutCard extends StatelessWidget {
         ),
         constraints: BoxConstraints(minHeight: 140),
         child: InkWell(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(12),
             onTap: onTap,
             child: Container(
                 padding: EdgeInsets.fromLTRB(15, 25, 15, 15),
@@ -62,7 +63,7 @@ class WorkoutCard extends StatelessWidget {
                                 shape: RoundedRectangleBorder(
                                     side:
                                         BorderSide(color: Theme.of(context).colorScheme.secondary),
-                                    borderRadius: BorderRadius.circular(5)),
+                                    borderRadius: BorderRadius.circular(8)),
                               )),
                         Chip(
                             elevation: 0,
@@ -73,7 +74,7 @@ class WorkoutCard extends StatelessWidget {
                             ),
                             shape: RoundedRectangleBorder(
                                 side: BorderSide(color: Theme.of(context).colorScheme.secondary),
-                                borderRadius: BorderRadius.circular(5))),
+                                borderRadius: BorderRadius.circular(8))),
                       ],
                     )
                   ],

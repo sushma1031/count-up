@@ -118,7 +118,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             return null;
           },
         ),
-        elevation: 24,
       ),
     );
     if (mounted) _reloadWorkout();
@@ -174,64 +173,58 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       );
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-        appBar: AppBar(
-            leading: BackButton(),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            actions: [
-              PopupMenuButton<WorkoutAction>(
-                  offset: Offset.fromDirection(90, 50),
-                  onSelected: (value) async {
-                    switch (value) {
-                      case WorkoutAction.editExercise:
-                        await _goToEditExercises(initiallyOpenSheet: false);
-                        break;
-                      case WorkoutAction.exportWorkout:
-                        var error = await WorkoutBackupService(widget.db).exportWorkout(_w);
-                        if (error != null) {
-                          _showErrorSnackbar(exportErrorMessage(context, error));
-                        }
-                        break;
-                      case WorkoutAction.deleteWorkout:
-                        await _confirmAndDeleteWorkout(widget.workoutKey).then((value) {
-                          if (value) Navigator.pop(context);
-                        });
-                        break;
+        appBar: AppBar(leading: BackButton(), actions: [
+          PopupMenuButton<WorkoutAction>(
+              offset: Offset.fromDirection(90, 50),
+              onSelected: (value) async {
+                switch (value) {
+                  case WorkoutAction.editExercise:
+                    await _goToEditExercises(initiallyOpenSheet: false);
+                    break;
+                  case WorkoutAction.exportWorkout:
+                    var error = await WorkoutBackupService(widget.db).exportWorkout(_w);
+                    if (error != null) {
+                      _showErrorSnackbar(exportErrorMessage(context, error));
                     }
-                  },
-                  itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
-                        PopupMenuItem<WorkoutAction>(
-                          child: IconTextItem(
-                            icon: Icons.edit_note,
-                            text: l10n.editExercisesTitle,
-                          ),
-                          value: WorkoutAction.editExercise,
-                        ),
-                        PopupMenuItem<WorkoutAction>(
-                          child: IconTextItem(
-                            icon: Icons.download,
-                            text: l10n.exportMenuItem,
-                          ),
-                          value: WorkoutAction.exportWorkout,
-                        ),
-                        PopupMenuItem<WorkoutAction>(
-                          child: IconTextItem(
-                            icon: Icons.delete,
-                            text: l10n.deleteWorkoutMenuItem,
-                          ),
-                          value: WorkoutAction.deleteWorkout,
-                        ),
-                      ]),
-            ]),
+                    break;
+                  case WorkoutAction.deleteWorkout:
+                    await _confirmAndDeleteWorkout(widget.workoutKey).then((value) {
+                      if (value) Navigator.pop(context);
+                    });
+                    break;
+                }
+              },
+              itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
+                    PopupMenuItem<WorkoutAction>(
+                      child: IconTextItem(
+                        icon: Icons.edit_note,
+                        text: l10n.editExercisesTitle,
+                      ),
+                      value: WorkoutAction.editExercise,
+                    ),
+                    PopupMenuItem<WorkoutAction>(
+                      child: IconTextItem(
+                        icon: Icons.download,
+                        text: l10n.exportMenuItem,
+                      ),
+                      value: WorkoutAction.exportWorkout,
+                    ),
+                    PopupMenuItem<WorkoutAction>(
+                      child: IconTextItem(
+                        icon: Icons.delete,
+                        text: l10n.deleteWorkoutMenuItem,
+                      ),
+                      value: WorkoutAction.deleteWorkout,
+                    ),
+                  ]),
+        ]),
         floatingActionButton: _w.exercises.isEmpty
             ? FloatingActionButton.extended(
-                shape: StadiumBorder(),
                 onPressed: () => _goToEditExercises(initiallyOpenSheet: true),
                 icon: Icon(Icons.add),
                 label: Text(l10n.addExercisesBtn),
               )
             : FloatingActionButton(
-                shape: StadiumBorder(),
                 tooltip: l10n.startWorkoutTooltip,
                 onPressed: _countdownAndStart,
                 child: Icon(Icons.play_arrow),
@@ -243,19 +236,19 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Flexible(
-                    child: Semantics(
-                      header: true,
-                      child: Text(
-                        _w.name,
-                        maxLines: _kWorkoutNameMaxLines,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontFamily: Assets.fontEthosNova, fontWeight: FontWeight.bold, fontSize: 28),
-                      ),
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      _w.name,
+                      maxLines: _kWorkoutNameMaxLines,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontFamily: Assets.fontEthosNova,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 28),
                     ),
                   ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   tooltip: AppLocalizations.of(context).renameWorkoutTooltip,

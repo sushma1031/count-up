@@ -18,7 +18,6 @@ Future<bool> showExitWorkoutDialog(BuildContext context) async {
                   child: Text(l10n.noBtn),
                   onPressed: () => Navigator.of(context).pop(false)),
             ],
-            elevation: 20,
           );
         },
       ) ??

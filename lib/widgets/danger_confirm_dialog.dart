@@ -37,7 +37,6 @@ class DangerConfirmDialog extends StatelessWidget {
             ),
             onPressed: () => Navigator.pop(context, false)),
       ],
-      elevation: 24,
     );
   }
 }

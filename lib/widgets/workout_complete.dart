@@ -59,23 +59,20 @@ class WorkoutComplete extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(height: 1.5),
                 )),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  ElevatedButton(
-                    onPressed: () async {
-                      await countdownAndRestart(context);
-                    },
-                    child: Text(l10n.repeatBtn),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.popUntil(
-                          context, (Route<dynamic> route) => route.isFirst);
-                    },
-                    child: Text(l10n.homeBtn),
-                  ),
-                ]),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
+              FilledButton(
+                onPressed: () async {
+                  await countdownAndRestart(context);
+                },
+                child: Text(l10n.repeatBtn),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
+                },
+                child: Text(l10n.homeBtn),
+              ),
+            ]),
           ],
         ));
   }

@@ -131,7 +131,7 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
           title: ExerciseItem(exercise: exercise),
           trailing: ReorderableDragStartListener(
             index: index,
-            child: Icon(Icons.drag_handle, color: Colors.white.withValues(alpha: 0.7)),
+            child: Icon(Icons.drag_handle, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           onTap: () => _edit(index),
         ),
@@ -149,16 +149,14 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           appBar: AppBar(
             leading: CloseButton(onPressed: () => Navigator.of(context).pop()),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
             title: Text(l10n.editExercisesTitle,
                 style: TextStyle(fontFamily: Assets.fontEthosNova, fontWeight: FontWeight.bold)),
             actions: [
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(visualDensity: VisualDensity(vertical: -1)),
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(visualDensity: VisualDensity(vertical: -1)),
                     onPressed: _save,
                     child: Text(l10n.saveBtn),
                   ),
@@ -167,7 +165,6 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
             ],
           ),
           floatingActionButton: FloatingActionButton(
-            shape: StadiumBorder(),
             tooltip: l10n.addExerciseTooltip,
             onPressed: _add,
             child: Icon(Icons.add),

@@ -13,9 +13,6 @@ Future<Exercise?> showExerciseSheet(BuildContext context, {Exercise? initial}) {
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
     builder: (_) => ExerciseSheet(initial: initial),
   );
 }
@@ -118,12 +115,7 @@ class _ExerciseSheetState extends State<ExerciseSheet> {
               const SizedBox(height: 12),
               SegmentedButton<ExerciseType>(
                 showSelectedIcon: false,
-                style: ButtonStyle(
-                  visualDensity: VisualDensity(vertical: -2),
-                  // Matches the M2 default enabled TextField underline colour.
-                  side: WidgetStatePropertyAll(
-                      BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.4))),
-                ),
+                style: ButtonStyle(visualDensity: VisualDensity(vertical: -2)),
                 segments: [
                   ButtonSegment(
                     value: ExerciseType.duration,

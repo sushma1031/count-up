@@ -63,8 +63,6 @@ class WorkoutsScreen extends StatelessWidget {
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
           title: Text(
             l10n.workoutsScreenTitle,
             style: TextStyle(fontFamily: Assets.fontEthosNova, fontWeight: FontWeight.bold),
@@ -121,7 +119,6 @@ class WorkoutsScreen extends StatelessWidget {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          shape: StadiumBorder(),
           child: Icon(Icons.add),
           onPressed: () async {
             var workoutKey = await showDialog(
@@ -135,7 +132,6 @@ class WorkoutsScreen extends StatelessWidget {
                     onSubmit: db.addEmptyWorkout,
                     existingNames: db.getAllWorkoutNames(),
                   ),
-                  elevation: 24,
                 );
               },
             );

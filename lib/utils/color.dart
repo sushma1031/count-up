@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const error = Color(0xFFCF6765);
   static const warning = Color(0xFFFF6F00);
-
 }
 
 Color darken(Color color, [double amount = .1]) {
