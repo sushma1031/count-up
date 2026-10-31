@@ -15,6 +15,7 @@ class WorkoutCard extends StatelessWidget {
     Color primary = Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
     Color darkBase = Theme.of(context).colorScheme.surface;
     return Card(
+      margin: EdgeInsets.zero,
       color:
           ElevationOverlay.colorWithOverlay(darkBase, Theme.of(context).colorScheme.onSurface, 24),
       child: Container(
