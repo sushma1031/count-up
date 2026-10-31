@@ -13,7 +13,7 @@ class StaticExerciseList extends StatelessWidget {
         child: exercises.isEmpty
             ? null
             : ListView.builder(
-                padding: const EdgeInsets.only(bottom: 80),
+                padding: const EdgeInsets.only(bottom: 96),
                 itemCount: exercises.length,
                 itemBuilder: (context, index) {
                   return Padding(
