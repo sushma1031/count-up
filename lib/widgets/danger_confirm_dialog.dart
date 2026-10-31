@@ -26,16 +26,16 @@ class DangerConfirmDialog extends StatelessWidget {
       actions: <Widget>[
         TextButton(
             child: Text(
-              l10n.yesBtn,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            onPressed: () => Navigator.pop(context, true)),
-        TextButton(
-            child: Text(
               l10n.noBtn,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             onPressed: () => Navigator.pop(context, false)),
+        TextButton(
+            child: Text(
+              l10n.yesBtn,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            onPressed: () => Navigator.pop(context, true)),
       ],
     );
   }

@@ -46,9 +46,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ),
               actions: <Widget>[
                 TextButton(
-                    child: Text(l10n.yesBtn), onPressed: () => Navigator.of(context).pop(true)),
-                TextButton(
                     child: Text(l10n.noBtn), onPressed: () => Navigator.of(context).pop(false)),
+                TextButton(
+                    child: Text(l10n.yesBtn), onPressed: () => Navigator.of(context).pop(true)),
               ],
             );
           },
