@@ -16,7 +16,7 @@ class TimerProvider extends StatefulWidget {
   final ValueChanged<void> previousExercise;
   final AudioService player;
   const TimerProvider(
-      {Key? key,
+      {super.key,
       required this.name,
       required this.duration,
       required this.currentIndex,
@@ -25,8 +25,7 @@ class TimerProvider extends StatefulWidget {
       required this.previousExercise,
       required this.player,
       required this.workoutProgress,
-      this.nextName})
-      : super(key: key);
+      this.nextName});
   @override
   State<TimerProvider> createState() => _TimerProviderState();
 }

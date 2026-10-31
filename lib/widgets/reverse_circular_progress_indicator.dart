@@ -4,8 +4,7 @@ import 'package:count_up/utils/workout_constants.dart';
 
 class ReverseCircularProgressIndicator extends StatelessWidget {
   final AnimationController controller;
-  const ReverseCircularProgressIndicator({Key? key, required this.controller})
-      : super(key: key);
+  const ReverseCircularProgressIndicator({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {

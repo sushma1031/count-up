@@ -23,7 +23,7 @@ class WorkoutBackupService {
       allowedExtensions: ['json'],
     );
     if (result == null) {
-      return const ImportResult.cancelled();
+      return const ImportCancelled();
     }
     File file = File(result.files.single.path!);
     String workoutJson = await file.readAsString();
@@ -34,23 +34,23 @@ class WorkoutBackupService {
     try {
       var workout = importFromJson(workoutJson);
       if (workout.exercises.length > maxExercisesPerWorkout) {
-        return const ImportResult.failure(ImportError.exerciseLimit);
+        return const ImportFailure(ImportError.exerciseLimit);
       }
       workout.name =
           getUniqueWorkoutName(db.getAllWorkoutNames(), workout.name);
-      return ImportResult.success(await db.addWorkout(workout));
+      return ImportSuccess(await db.addWorkout(workout));
     } on UnknownExerciseTypeException catch (e) {
       print('Unknown exercise type: $e');
-      return ImportResult.unknownExerciseType(e.type);
+      return ImportUnknownExerciseType(e.type);
     } on FormatException catch (e) {
       print('Invalid JSON: $e');
-      return const ImportResult.failure(ImportError.format);
+      return const ImportFailure(ImportError.format);
     } on TypeError catch (e) {
       print('Type error: $e');
-      return const ImportResult.failure(ImportError.type);
+      return const ImportFailure(ImportError.type);
     } catch (e) {
       print('Unexpected error: $e');
-      return const ImportResult.failure(ImportError.unknown);
+      return const ImportFailure(ImportError.unknown);
     }
   }
 

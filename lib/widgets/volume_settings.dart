@@ -12,11 +12,11 @@ class VolumeSettings extends StatefulWidget {
   final void Function(double) onChanged;
 
   const VolumeSettings({
-    Key? key,
+    super.key,
     required this.initial,
     required this.onChanged,
     this.min = 0.0,
-  }) : super(key: key);
+  });
 
   @override
   State<VolumeSettings> createState() => _VolumeSettingsState();

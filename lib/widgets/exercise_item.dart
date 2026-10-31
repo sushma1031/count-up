@@ -5,8 +5,7 @@ import 'package:count_up/models/exercise.dart';
 class ExerciseItem extends StatelessWidget {
   final Exercise exercise;
   final bool truncate;
-  const ExerciseItem({Key? key, required this.exercise, this.truncate = false})
-      : super(key: key);
+  const ExerciseItem({super.key, required this.exercise, this.truncate = false});
 
   @override
   Widget build(BuildContext context) {

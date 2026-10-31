@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class SettingsDialog extends StatefulWidget {
   final SettingsService settings;
 
-  const SettingsDialog({Key? key, required this.settings}) : super(key: key);
+  const SettingsDialog({super.key, required this.settings});
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();

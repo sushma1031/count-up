@@ -19,17 +19,13 @@ abstract class Exercise extends HiveObject {
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
     final rawType = json[ExerciseJsonKeys.type] as String?;
-    switch (rawType) {
-      case kExerciseTypeRep:
-        return RepExercise.fromJson(json);
-      case kExerciseTypeDuration:
-      case null:
-        // Missing type is considered DurationExercise for backward compatibility
-        // (exercises created before rep-based was introduced).
-        return DurationExercise.fromJson(json);
-      default:
-        throw UnknownExerciseTypeException(rawType!);
-    }
+    return switch (rawType) {
+      kExerciseTypeRep => RepExercise.fromJson(json),
+      // Missing type is considered DurationExercise for backward compatibility
+      // (exercises created before rep-based was introduced).
+      kExerciseTypeDuration || null => DurationExercise.fromJson(json),
+      final type => throw UnknownExerciseTypeException(type),
+    };
   }
 }
 

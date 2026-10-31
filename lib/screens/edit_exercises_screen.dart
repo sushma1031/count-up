@@ -18,13 +18,12 @@ class EditExercisesScreen extends StatefulWidget {
   final Future<bool> Function() onPop;
   final bool initiallyOpenSheet;
   const EditExercisesScreen(
-      {Key? key,
+      {super.key,
       required this.updateWorkoutExercises,
       required this.onPop,
       required this.workoutKey,
       required this.exercises,
-      this.initiallyOpenSheet = false})
-      : super(key: key);
+      this.initiallyOpenSheet = false});
 
   @override
   State<EditExercisesScreen> createState() => _EditExercisesScreenState();

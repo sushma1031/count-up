@@ -17,7 +17,7 @@ class TimerWidget extends StatelessWidget {
   final IconData pauseResume;
 
   const TimerWidget(
-      {Key? key,
+      {super.key,
       required this.controller,
       required this.name,
       required this.timeLeft,
@@ -26,8 +26,7 @@ class TimerWidget extends StatelessWidget {
       required this.togglePauseResume,
       required this.pauseResume,
       required this.workoutProgress,
-      this.nextName})
-      : super(key: key);
+      this.nextName});
 
   @override
   Widget build(BuildContext context) {

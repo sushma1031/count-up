@@ -14,15 +14,14 @@ class RepWidget extends StatelessWidget {
   final void Function() onDone;
 
   const RepWidget(
-      {Key? key,
+      {super.key,
       required this.name,
       required this.reps,
       required this.prevBtnFunction,
       required this.nextBtnFunction,
       required this.onDone,
       required this.workoutProgress,
-      this.nextName})
-      : super(key: key);
+      this.nextName});
 
   @override
   Widget build(BuildContext context) {

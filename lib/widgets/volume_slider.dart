@@ -8,15 +8,14 @@ class VolumeSlider extends StatefulWidget {
   final void Function(double) onChanged;
 
   const VolumeSlider(
-      {Key? key,
+      {super.key,
       this.initial = 0.5,
       this.min = 0.0,
       this.max = 1.0,
       this.step = 0.1,
       required this.onChanged})
       : assert(step > 0),
-        assert(max > min),
-        super(key: key);
+        assert(max > min);
 
   @override
   State<VolumeSlider> createState() => _VolumeSliderState();

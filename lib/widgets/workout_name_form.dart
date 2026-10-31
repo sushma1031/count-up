@@ -8,13 +8,13 @@ class WorkoutNameForm extends StatefulWidget {
   final List<String> existingNames;
   final Future<Object?> Function(String) onSubmit;
   const WorkoutNameForm({
-    Key? key,
+    super.key,
     required this.initial,
     required this.label,
     required this.submitLabel,
     required this.existingNames,
     required this.onSubmit,
-  }) : super(key: key);
+  });
   @override
   State<WorkoutNameForm> createState() => _WorkoutNameFormState();
 }

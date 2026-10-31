@@ -27,7 +27,7 @@ class WorkoutComplete extends StatelessWidget {
     });
   }
 
-  WorkoutComplete({Key? key, required this.restartWorkout}) : super(key: key);
+  const WorkoutComplete({super.key, required this.restartWorkout});
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);

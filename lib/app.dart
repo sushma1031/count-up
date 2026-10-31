@@ -69,7 +69,7 @@ class CountUpApp extends StatelessWidget {
 
 class HomePage extends StatefulWidget {
   final StorageService db;
-  const HomePage({Key? key, required this.db}) : super(key: key);
+  const HomePage({super.key, required this.db});
 
   @override
   State<HomePage> createState() => _HomePageState();

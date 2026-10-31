@@ -19,7 +19,7 @@ Future<Exercise?> showExerciseSheet(BuildContext context, {Exercise? initial}) {
 
 class ExerciseSheet extends StatefulWidget {
   final Exercise? initial;
-  const ExerciseSheet({Key? key, this.initial}) : super(key: key);
+  const ExerciseSheet({super.key, this.initial});
 
   @override
   State<ExerciseSheet> createState() => _ExerciseSheetState();

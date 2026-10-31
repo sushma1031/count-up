@@ -10,7 +10,7 @@ class TimerScreen extends StatelessWidget {
 
   final AudioService player;
 
-  const TimerScreen({Key? key, required this.e, required this.player}) : super(key: key);
+  const TimerScreen({super.key, required this.e, required this.player});
   @override
   Widget build(BuildContext context) {
     return Scaffold(

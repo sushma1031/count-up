@@ -4,7 +4,7 @@ import '../widgets/exercise_item.dart';
 
 class StaticExerciseList extends StatelessWidget {
   final List<Exercise> exercises;
-  const StaticExerciseList({Key? key, required this.exercises}) : super(key: key);
+  const StaticExerciseList({super.key, required this.exercises});
 
   @override
   Widget build(BuildContext context) {

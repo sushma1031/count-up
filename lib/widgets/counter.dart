@@ -7,12 +7,12 @@ class Counter extends StatelessWidget {
   final ValueChanged<int> onChanged;
 
   const Counter({
-    Key? key,
+    super.key,
     required this.value,
     this.min = 0,
     this.max = 10,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

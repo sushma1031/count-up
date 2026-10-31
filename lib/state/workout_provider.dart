@@ -10,8 +10,7 @@ class WorkoutProvider extends StatefulWidget {
   final List<Exercise> exercises;
   final AudioService player;
 
-  WorkoutProvider({Key? key, required this.exercises, required this.player})
-      : super(key: key);
+  WorkoutProvider({super.key, required this.exercises, required this.player});
 
   @override
   State<WorkoutProvider> createState() => _WorkoutProviderState();

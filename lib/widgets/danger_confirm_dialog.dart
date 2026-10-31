@@ -4,7 +4,7 @@ import 'package:count_up/gen/l10n/app_localizations.dart';
 class DangerConfirmDialog extends StatelessWidget {
   final String message;
 
-  const DangerConfirmDialog({Key? key, required this.message}) : super(key: key);
+  const DangerConfirmDialog({super.key, required this.message});
 
   static Future<bool> show(BuildContext context, {required String message}) async {
     return await showDialog<bool>(

@@ -9,10 +9,10 @@ class SettingsProvider extends InheritedWidget {
   final SettingsService settings;
 
   const SettingsProvider({
-    Key? key,
+    super.key,
     required this.settings,
-    required Widget child,
-  }) : super(key: key, child: child);
+    required super.child,
+  });
 
   static SettingsService of(BuildContext context) {
     final provider =

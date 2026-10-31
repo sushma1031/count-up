@@ -6,7 +6,7 @@ import 'package:count_up/gen/l10n/app_localizations.dart';
 class WorkoutCard extends StatelessWidget {
   final WorkoutDisplay workout;
   final void Function() onTap;
-  const WorkoutCard({Key? key, required this.workout, required this.onTap}) : super(key: key);
+  const WorkoutCard({super.key, required this.workout, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

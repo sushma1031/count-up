@@ -1,28 +1,25 @@
-enum ImportError { format, type, unknownExerciseType, exerciseLimit, unknown }
+enum ImportError { format, type, exerciseLimit, unknown }
 
-/// Represents the outcome of a workout import.
-///
-/// Contains [workoutKey] on success, [error] on failure, or neither
-/// if the user cancelled the file selection. [unknownExerciseType] is set
-/// only when [error] is [ImportError.unknownExerciseType].
-///
-/// TODO: Migrate to Dart 3 [Result] class.
-class ImportResult {
-  final int? workoutKey;
-  final ImportError? error;
-  final String? unknownExerciseType;
+/// Outcome of a workout import.
+sealed class ImportResult {
+  const ImportResult();
+}
 
-  const ImportResult.success(int this.workoutKey)
-      : error = null,
-        unknownExerciseType = null;
-  const ImportResult.failure(ImportError this.error)
-      : workoutKey = null,
-        unknownExerciseType = null;
-  const ImportResult.unknownExerciseType(String this.unknownExerciseType)
-      : error = ImportError.unknownExerciseType,
-        workoutKey = null;
-  const ImportResult.cancelled()
-      : workoutKey = null,
-        error = null,
-        unknownExerciseType = null;
+final class ImportSuccess extends ImportResult {
+  final int workoutKey;
+  const ImportSuccess(this.workoutKey);
+}
+
+final class ImportCancelled extends ImportResult {
+  const ImportCancelled();
+}
+
+final class ImportFailure extends ImportResult {
+  final ImportError error;
+  const ImportFailure(this.error);
+}
+
+final class ImportUnknownExerciseType extends ImportResult {
+  final String type;
+  const ImportUnknownExerciseType(this.type);
 }

@@ -10,13 +10,12 @@ class CountdownScreen extends StatefulWidget {
   final Duration stepDuration;
   final AudioService? onCompleteAudioPlayer;
   const CountdownScreen(
-      {Key? key,
+      {super.key,
       required this.textSequence,
       this.onCompleteAudioPlayer,
       this.message,
       this.fontSize = 36,
-      this.stepDuration = const Duration(milliseconds: 1500)})
-      : super(key: key);
+      this.stepDuration = const Duration(milliseconds: 1500)});
 
   @override
   State<CountdownScreen> createState() => _CountdownScreenState();

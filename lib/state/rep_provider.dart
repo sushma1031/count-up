@@ -13,7 +13,7 @@ class RepProvider extends StatelessWidget {
   final String workoutProgress;
 
   const RepProvider(
-      {Key? key,
+      {super.key,
       required this.name,
       required this.reps,
       required this.currentIndex,
@@ -21,8 +21,7 @@ class RepProvider extends StatelessWidget {
       required this.nextExercise,
       required this.previousExercise,
       required this.workoutProgress,
-      this.nextName})
-      : super(key: key);
+      this.nextName});
 
   Future<void> _goPrevious() async {
     previousExercise(null);

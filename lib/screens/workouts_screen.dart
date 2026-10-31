@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:count_up/utils/assets.dart';
 import 'package:count_up/screens/exercises_screen.dart';
 import 'package:count_up/models/workout_display.dart';
+import 'package:count_up/models/import_result.dart';
 import 'package:count_up/widgets/workout_card.dart';
 import 'package:count_up/widgets/settings_dialog.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
@@ -17,7 +18,7 @@ enum WorkoutCollectionAction { deleteAll, importWorkout, exportAll }
 class WorkoutsScreen extends StatelessWidget {
   final StorageService db;
 
-  WorkoutsScreen({Key? key, required this.db}) : super(key: key);
+  WorkoutsScreen({super.key, required this.db});
 
   WorkoutBackupService get _backup => WorkoutBackupService(db);
 
@@ -84,11 +85,16 @@ class WorkoutsScreen extends StatelessWidget {
                 onSelected: (value) async {
                   switch (value) {
                     case WorkoutCollectionAction.importWorkout:
-                      final result = await _backup.importWorkout();
-                      if (result.error != null) {
-                        _showErrorSnackbar(context, importErrorMessage(context, result));
-                      } else if (result.workoutKey != null) {
-                        _goToWorkout(context, result.workoutKey!);
+                      switch (await _backup.importWorkout()) {
+                        case ImportSuccess(:final workoutKey):
+                          _goToWorkout(context, workoutKey);
+                        case ImportFailure(:final error):
+                          _showErrorSnackbar(context, importErrorMessage(context, error));
+                        case ImportUnknownExerciseType(:final type):
+                          _showErrorSnackbar(context,
+                              AppLocalizations.of(context).importErrorUnknownExerciseType(type));
+                        case ImportCancelled():
+                          break;
                       }
                       break;
                     case WorkoutCollectionAction.deleteAll:

@@ -22,7 +22,7 @@ const int _kWorkoutNameMaxLines = 2;
 class ExercisesScreen extends StatefulWidget {
   final int workoutKey;
   final StorageService db;
-  const ExercisesScreen({Key? key, required this.db, required this.workoutKey}) : super(key: key);
+  const ExercisesScreen({super.key, required this.db, required this.workoutKey});
 
   @override
   State<ExercisesScreen> createState() => _ExercisesScreenState();
