@@ -234,11 +234,13 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ),
         body: Column(children: [
           Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 12),
+            // The right padding is less than that of [StaticExerciseList]
+            // to make the edit icon line up correctly.
+            padding: const EdgeInsets.only(left: 24, right: 8, bottom: 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Flexible(
+                Expanded(
                   child: Semantics(
                     header: true,
                     child: Text(

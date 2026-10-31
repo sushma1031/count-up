@@ -8,18 +8,14 @@ class StaticExerciseList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 32),
-        child: exercises.isEmpty
-            ? null
-            : ListView.builder(
-                padding: const EdgeInsets.only(bottom: 96),
-                itemCount: exercises.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                      padding: EdgeInsets.only(top: 24),
-                      child: ExerciseItem(exercise: exercises[index]));
-                },
-              ));
+    return ListView.builder(
+      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 96),
+      itemCount: exercises.length,
+      itemBuilder: (context, index) {
+        return Padding(
+            padding: EdgeInsets.only(top: 24),
+            child: ExerciseItem(exercise: exercises[index]));
+      },
+    );
   }
 }
