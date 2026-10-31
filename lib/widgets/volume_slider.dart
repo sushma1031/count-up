@@ -48,6 +48,7 @@ class _VolumeSliderState extends State<VolumeSlider> {
             min: widget.min,
             max: widget.max,
             divisions: divisions,
+            padding: const EdgeInsetsDirectional.only(top: 14, bottom: 14, end: 10),
             onChanged: (double value) {
               setState(() {
                 _currentSliderValue = value;

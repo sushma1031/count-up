@@ -5,8 +5,11 @@ class TimerAudioService extends AudioService {
   AudioPlayer _player = AudioPlayer();
   AudioStatus _status = AudioStatus.stopped;
   final AssetSource _asset;
+  double _volume;
 
-  TimerAudioService(String assetPath) : _asset = AssetSource(assetPath);
+  TimerAudioService(String assetPath, {double volume = 1.0})
+      : _asset = AssetSource(assetPath),
+        _volume = volume;
 
   // Configures player to duck other audio during playback
   @override
@@ -21,12 +24,13 @@ class TimerAudioService extends AudioService {
 
   @override
   Future<void> setVolume(double volume) async {
-    await _player.setVolume(volume);
+    _volume = volume;
   }
 
   @override
   Future<void> play() async {
-    await _player.play(_asset);
+    if (_volume <= 0) return;
+    await _player.play(_asset, volume: _volume);
     _status = AudioStatus.playing;
   }
 

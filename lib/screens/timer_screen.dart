@@ -1,7 +1,6 @@
 import 'package:count_up/models/exercise.dart';
 import 'package:flutter/material.dart';
 import 'package:count_up/utils/assets.dart';
-import '../state/settings_provider.dart';
 import '../state/workout_provider.dart';
 import '../services/audio_service.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
@@ -25,7 +24,6 @@ class TimerScreen extends StatelessWidget {
           child: WorkoutProvider(
         exercises: e,
         player: player,
-        timerVolume: SettingsProvider.of(context).timerVolume,
       )),
     );
   }

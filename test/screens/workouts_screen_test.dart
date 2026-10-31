@@ -88,7 +88,7 @@ void main() {
     expect(find.byType(WorkoutCard), findsNothing);
   });
 
-  testWidgets('updates timer volume from settings', (tester) async {
+  testWidgets('updates sound volume from settings', (tester) async {
     await tester.pumpWidget(screen);
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pumpAndSettle();
@@ -97,7 +97,7 @@ void main() {
 
     await tester.drag(find.byType(Slider).first, const Offset(500, 0));
     await tester.pumpAndSettle();
-    expect(mockSettings.timerVolume, 1.0);
+    expect(mockSettings.soundVolume, 1.0);
   });
 
   testWidgets('updates pre-workout countdown from settings', (tester) async {

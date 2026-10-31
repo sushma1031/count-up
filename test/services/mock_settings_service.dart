@@ -1,28 +1,28 @@
 import 'package:count_up/services/settings_service.dart';
 
 class MockSettingsService implements SettingsService {
-  double _timerVolume;
+  double _soundVolume;
   int _preWorkoutCountdownSeconds;
 
   @override
   final bool isPersistenceAvailable;
 
   MockSettingsService({
-    double timerVolume = 0.5,
+    double soundVolume = 0.5,
     this.isPersistenceAvailable = true,
     int preWorkoutCountdownSeconds = SettingsService.defaultPreWorkoutCountdownSeconds,
-  })  : _timerVolume = timerVolume,
+  })  : _soundVolume = soundVolume,
         _preWorkoutCountdownSeconds = preWorkoutCountdownSeconds;
 
   @override
-  double get timerVolume => _timerVolume;
+  double get soundVolume => _soundVolume;
 
   @override
   int get preWorkoutCountdownSeconds => _preWorkoutCountdownSeconds;
 
   @override
-  Future<void> setTimerVolume(double value) async {
-    _timerVolume = value.clamp(0.0, 1.0);
+  Future<void> setSoundVolume(double value) async {
+    _soundVolume = value.clamp(0.0, 1.0);
   }
 
   @override

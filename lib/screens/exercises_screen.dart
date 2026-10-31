@@ -124,12 +124,13 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   }
 
   void _startWorkout() {
+    final volume = SettingsProvider.of(context).soundVolume;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => TimerScreen(
           e: _w.exercises,
-          player: TimerAudioService(Assets.audioExerciseChange),
+          player: TimerAudioService(Assets.audioExerciseChange, volume: volume),
         ),
       ),
     );
@@ -153,7 +154,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             growable: false,
           ),
           stepDuration: const Duration(seconds: 1),
-          onCompleteAudioPlayer: TimerAudioService(Assets.audioWorkoutStart),
+          onCompleteAudioPlayer: TimerAudioService(
+            Assets.audioWorkoutStart,
+            volume: SettingsProvider.of(context).soundVolume,
+          ),
           fontSize: 50,
         ),
       ),

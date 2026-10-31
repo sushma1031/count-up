@@ -38,8 +38,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
           ),
           const SizedBox(height: 20),
           VolumeSettings(
-            initial: widget.settings.timerVolume,
-            onChanged: widget.settings.setTimerVolume,
+            initial: widget.settings.soundVolume,
+            onChanged: widget.settings.setSoundVolume,
           ),
           const Divider(height: 32),
           Row(

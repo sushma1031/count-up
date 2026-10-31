@@ -4,9 +4,9 @@ abstract class SettingsService {
   static const int maxPreWorkoutCountdownSeconds = 10;
 
   bool get isPersistenceAvailable;
-  double get timerVolume;
+  double get soundVolume;
   int get preWorkoutCountdownSeconds;
 
-  Future<void> setTimerVolume(double value);
+  Future<void> setSoundVolume(double value);
   Future<void> setPreWorkoutCountdownSeconds(int value);
 }
