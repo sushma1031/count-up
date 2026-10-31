@@ -124,20 +124,21 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   }
 
   void _startWorkout() {
-    final volume = SettingsProvider.of(context).soundVolume;
+    final alertVolume = SettingsProvider.of(context).soundVolume;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => TimerScreen(
           e: _w.exercises,
-          player: TimerAudioService(Assets.audioExerciseChange, volume: volume),
+          player: TimerAudioService(Assets.audioExerciseChange, volume: alertVolume),
         ),
       ),
     );
   }
 
   Future<void> _countdownAndStart() async {
-    final countdownSeconds = SettingsProvider.of(context).preWorkoutCountdownSeconds;
+    final settings = SettingsProvider.of(context);
+    final countdownSeconds = settings.preWorkoutCountdownSeconds;
 
     if (countdownSeconds <= 0) {
       _startWorkout();
@@ -154,10 +155,8 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             growable: false,
           ),
           stepDuration: const Duration(seconds: 1),
-          onCompleteAudioPlayer: TimerAudioService(
-            Assets.audioWorkoutStart,
-            volume: SettingsProvider.of(context).soundVolume,
-          ),
+          onCompleteAudioPlayer:
+              TimerAudioService(Assets.audioWorkoutStart, volume: settings.soundVolume),
           fontSize: 50,
         ),
       ),

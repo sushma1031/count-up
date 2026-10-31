@@ -3,7 +3,7 @@ import 'package:count_up/utils/assets.dart';
 import 'package:count_up/widgets/scale_text_sequence.dart';
 import 'package:count_up/services/audio_service.dart';
 
-class CountdownScreen extends StatelessWidget {
+class CountdownScreen extends StatefulWidget {
   final String? message;
   final double fontSize;
   final List<String> textSequence;
@@ -18,13 +18,28 @@ class CountdownScreen extends StatelessWidget {
       this.stepDuration = const Duration(milliseconds: 1500)})
       : super(key: key);
 
-  Future<void> initAudioPlayer() async {
-    if (onCompleteAudioPlayer != null) await onCompleteAudioPlayer!.configure();
+  @override
+  State<CountdownScreen> createState() => _CountdownScreenState();
+}
+
+class _CountdownScreenState extends State<CountdownScreen> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onCompleteAudioPlayer?.configure();
+  }
+
+  @override
+  void dispose() {
+    // The screen pops as soon as the sound starts, so let it finish before releasing the player.
+    widget.onCompleteAudioPlayer?.disposeWhenDone();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    initAudioPlayer();
+    final message = widget.message;
+    final player = widget.onCompleteAudioPlayer;
     return Scaffold(
       backgroundColor:
           Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
@@ -35,25 +50,25 @@ class CountdownScreen extends StatelessWidget {
             children: <Widget>[
               if (message != null)
                 Text(
-                  message!,
+                  message,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 18),
                 ),
               Container(
                 constraints: BoxConstraints(minHeight: 75),
                 child: ScaleTextSequence(
-                  textSequence,
+                  widget.textSequence,
                   textStyle: TextStyle(
-                    fontSize: fontSize,
+                    fontSize: widget.fontSize,
                     fontFamily: Assets.fontEthosNova,
                     fontWeight: FontWeight.bold,
                   ),
-                  duration: stepDuration,
+                  duration: widget.stepDuration,
                   onFinished: () async {
-                    if (onCompleteAudioPlayer != null) {
-                      await onCompleteAudioPlayer!.play();
+                    if (player != null) {
+                      await player.play();
                     }
-                    Navigator.pop(context, true);
+                    if (mounted) Navigator.pop(context, true);
                   },
                 ),
               ),

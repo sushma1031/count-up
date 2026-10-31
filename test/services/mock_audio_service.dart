@@ -1,7 +1,10 @@
 import 'package:count_up/services/audio_service.dart';
 
+enum AudioStatus { playing, paused, stopped }
+
 class MockAudioService extends AudioService {
   bool configured = false;
+  bool disposed = false;
 
   /// Last value passed to [setVolume], or null if it was never called.
   double? volume;
@@ -39,13 +42,9 @@ class MockAudioService extends AudioService {
   }
 
   @override
-  Future<void> dispose() async {}
-
-  @override
-  AudioStatus get status => _status;
-
-  @override
-  set status(AudioStatus value) {
-    _status = value;
+  Future<void> dispose() async {
+    disposed = true;
   }
+
+  AudioStatus get status => _status;
 }

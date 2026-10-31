@@ -62,7 +62,6 @@ class _TimerProviderState extends State<TimerProvider>
         }
         if (_timeLeft.inSeconds <= -1) {
           timer.cancel();
-          widget.player.status = AudioStatus.stopped;
           widget.nextExercise(null);
         }
       });

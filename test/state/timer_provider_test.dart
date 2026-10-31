@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:count_up/state/timer_provider.dart';
-import 'package:count_up/services/audio_service.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
 import '../services/mock_audio_service.dart';
