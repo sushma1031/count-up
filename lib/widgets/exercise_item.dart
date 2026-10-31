@@ -4,7 +4,9 @@ import 'package:count_up/models/exercise.dart';
 
 class ExerciseItem extends StatelessWidget {
   final Exercise exercise;
-  const ExerciseItem({Key? key, required this.exercise}) : super(key: key);
+  final bool truncate;
+  const ExerciseItem({Key? key, required this.exercise, this.truncate = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +17,19 @@ class ExerciseItem extends StatelessWidget {
         : l10n.exerciseDurationSec((exercise as DurationExercise).duration);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: Text(exercise.name, style: style, overflow: TextOverflow.ellipsis)),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Text(
+              exercise.name,
+              style: style,
+              maxLines: truncate ? 1 : null,
+              overflow: truncate ? TextOverflow.ellipsis : null,
+            ),
+          ),
+        ),
         Text(value, style: style)
       ],
     );

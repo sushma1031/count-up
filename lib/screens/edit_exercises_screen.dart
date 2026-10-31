@@ -128,7 +128,7 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
           titleAlignment: ListTileTitleAlignment.center,
           leading: Text('${index + 1}.', style: const TextStyle(fontSize: 16)),
           minLeadingWidth: 24,
-          title: ExerciseItem(exercise: exercise),
+          title: ExerciseItem(exercise: exercise, truncate: true),
           trailing: ReorderableDragStartListener(
             index: index,
             child: Icon(Icons.drag_handle, color: Theme.of(context).colorScheme.onSurfaceVariant),
