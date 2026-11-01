@@ -50,9 +50,7 @@ class _TimerProviderState extends State<TimerProvider> with SingleTickerProvider
     _controller = AnimationController(
       vsync: this,
       duration: widget.duration + oneSec,
-    )..addListener(() {
-        setState(() {});
-      });
+    );
     startTimer();
   }
 

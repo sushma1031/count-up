@@ -36,8 +36,8 @@ class _OffsetAnimatedTextState extends State<OffsetAnimatedText>
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _offsetAnm,
-      child: Opacity(
-          opacity: _opacityAnm.value,
+      child: FadeTransition(
+          opacity: _opacityAnm,
           child: Text(widget.text,
               textAlign: TextAlign.center,
               style: TextStyle(fontStyle: FontStyle.italic, fontSize: 20))),
