@@ -8,7 +8,7 @@ import '../services/mock_audio_service.dart';
 void main() {
   MockAudioService mockPlayer = MockAudioService();
 
-  Widget createWidgetUnderTest(Duration duration, {Key? key}) {
+  Widget createWidgetUnderTest(Duration duration, {Key? key, bool isBreak = false}) {
     return MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -23,6 +23,7 @@ void main() {
         previousExercise: (_) {},
         player: mockPlayer,
         workoutProgress: '1/1',
+        isBreak: isBreak,
       ),
     ));
   }
@@ -67,5 +68,33 @@ void main() {
         mockPlayer.status, AudioStatus.stopped); // Ensure no sound played yet
     await tester.pump(Duration(seconds: 1));
     expect(mockPlayer.status, AudioStatus.playing); // Ensure sound played
+  });
+
+  testWidgets('previous tooltip switches to restart after 3s', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(Duration(seconds: 10)));
+    expect(find.byTooltip('Previous'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 3));
+    expect(find.byTooltip('Previous'), findsOneWidget);
+
+    await tester.pump(Duration(seconds: 1));
+    expect(find.byTooltip('Restart'), findsOneWidget);
+  });
+
+  testWidgets('break previous tooltip never says restart', (tester) async {
+    await tester.pumpWidget(
+        createWidgetUnderTest(Duration(seconds: 10), isBreak: true));
+    await tester.pump(Duration(seconds: 5));
+    expect(find.byTooltip('Previous'), findsOneWidget);
+    expect(find.byTooltip('Restart'), findsNothing);
+  });
+
+  testWidgets('pause tooltip reflects state', (tester) async {
+    await tester.pumpWidget(createWidgetUnderTest(Duration(seconds: 5)));
+    expect(find.byTooltip('Pause'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.pause));
+    await tester.pump();
+    expect(find.byTooltip('Resume'), findsOneWidget);
   });
 }

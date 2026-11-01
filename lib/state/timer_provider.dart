@@ -32,8 +32,7 @@ class TimerProvider extends StatefulWidget {
   State<TimerProvider> createState() => _TimerProviderState();
 }
 
-class _TimerProviderState extends State<TimerProvider>
-    with SingleTickerProviderStateMixin {
+class _TimerProviderState extends State<TimerProvider> with SingleTickerProviderStateMixin {
   final String audioPath = Assets.audioExerciseChange;
   late Timer _timer;
   late Duration _timeLeft;
@@ -186,9 +185,9 @@ class _TimerProviderState extends State<TimerProvider>
         child: TimerWidget(
           name: widget.name,
           nextName: widget.nextName,
-          nextBtnFunction:
-              widget.currentIndex == widget.noOfExercises ? null : goNext,
-          pauseResume: _isPaused ? Icons.play_arrow : Icons.pause,
+          nextBtnFunction: widget.currentIndex == widget.noOfExercises ? null : goNext,
+          isPaused: _isPaused,
+          restartsOnPrevious: _restartsOnPrevious,
           togglePauseResume: togglePauseResume,
           timeLeft: _timeLeft,
           workoutProgress: widget.workoutProgress,

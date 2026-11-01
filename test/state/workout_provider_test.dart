@@ -54,12 +54,13 @@ void main() {
 
   testWidgets('restart exercise', (WidgetTester tester) async {
     await tester.pumpWidget(testWidget);
-    await tester.pump(Duration(seconds: 3));
+    await tester.pump(Duration(seconds: 7)); // to Crunches (5s)
+    await tester.pump(Duration(seconds: 4));
 
     await tester.tap(find.byIcon(Icons.skip_previous));
     await tester.pump();
-    expect(find.text('6'), findsOneWidget);
-    expect(find.text('Plank'), findsOneWidget);
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text('Crunches'), findsOneWidget);
   });
 
   testWidgets('complete workout and show completion screen',

@@ -14,7 +14,8 @@ class TimerWidget extends StatelessWidget {
   final Future<void> Function() prevBtnFunction;
   final Future<void> Function()? nextBtnFunction;
   final void Function() togglePauseResume;
-  final IconData pauseResume;
+  final bool isPaused;
+  final bool restartsOnPrevious;
 
   const TimerWidget(
       {super.key,
@@ -24,7 +25,8 @@ class TimerWidget extends StatelessWidget {
       required this.prevBtnFunction,
       required this.nextBtnFunction,
       required this.togglePauseResume,
-      required this.pauseResume,
+      required this.isPaused,
+      required this.restartsOnPrevious,
       required this.workoutProgress,
       this.nextName});
 
@@ -79,13 +81,14 @@ class TimerWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         IconButton(
-                            tooltip: l10n.previousTooltip,
+                            tooltip:
+                                restartsOnPrevious ? l10n.restartTooltip : l10n.previousTooltip,
                             onPressed: prevBtnFunction,
                             icon: Icon(Icons.skip_previous)),
                         IconButton(
-                            tooltip: l10n.pauseResumeTooltip,
+                            tooltip: isPaused ? l10n.resumeTooltip : l10n.pauseTooltip,
                             onPressed: togglePauseResume,
-                            icon: Icon(pauseResume)),
+                            icon: Icon(isPaused ? Icons.play_arrow : Icons.pause)),
                         IconButton(
                           tooltip: l10n.nextTooltip,
                           onPressed: nextBtnFunction,
