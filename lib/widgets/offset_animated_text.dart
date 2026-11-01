@@ -40,6 +40,8 @@ class _OffsetAnimatedTextState extends State<OffsetAnimatedText>
           opacity: _opacityAnm,
           child: Text(widget.text,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontStyle: FontStyle.italic, fontSize: 20))),
     );
   }

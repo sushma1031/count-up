@@ -41,7 +41,7 @@ class TimerWidget extends StatelessWidget {
               child: timeLeft.inSeconds > 5
                   ? Container()
                   : Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.symmetric(horizontal: 24),
                       child: OffsetAnimatedText(
                           nextName != null ? l10n.nextUp(nextName!) : l10n.lastOne))),
           SizedBox(
