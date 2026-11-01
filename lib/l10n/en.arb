@@ -10,7 +10,10 @@
   "settingsTitle": "Settings",
   "settingsNotPersistedWarning": "Settings could not be loaded and won't be saved during this session.",
   "preWorkoutCountdownLabel": "Pre-workout countdown",
-  "breakDurationLabel": "Break between exercises",
+  "breakDurationLabel": "Break",
+  "breakBetweenExercisesLabel": "Break between exercises",
+  "breakDurationDefaultHint": "Default",
+
   "soundSettingLabel": "Sound",
   "workoutNoLongerAvailable": "Error: Workout no longer available.",
   "dangerZoneTitle": "Danger Zone",

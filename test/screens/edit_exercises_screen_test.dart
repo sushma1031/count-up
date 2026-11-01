@@ -1,11 +1,14 @@
 import 'package:count_up/models/exercise.dart';
 import 'package:count_up/models/workout.dart';
 import 'package:count_up/screens/edit_exercises_screen.dart';
+import 'package:count_up/state/settings_provider.dart';
 import 'package:count_up/utils/workout_constants.dart';
 import 'package:count_up/widgets/exercise_sheet.dart';
+import 'package:count_up/widgets/break_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../services/mock_settings_service.dart';
 import '../test_app.dart';
 
 void main() {
@@ -35,7 +38,7 @@ void main() {
     await _save(tester);
 
     expect(editor.savedNames, ['Plank', 'Push-ups', 'Squats']);
-    expect((editor.writes.single[2] as DurationExercise).duration, 50);
+    expect((editor.writes.single.exercises[2] as DurationExercise).duration, 50);
     editor.expectOriginalsUnchanged();
   });
 
@@ -109,8 +112,7 @@ void main() {
         reason: 'the Undo snackbar must not outlive the screen');
   });
 
-  testWidgets(
-      'drag handle reorders and renumbers rows correctly, and Save persists the changes',
+  testWidgets('drag handle reorders and renumbers rows correctly, and Save persists the changes',
       (tester) async {
     final editor = _EditorHarness();
     await editor.pump(tester);
@@ -129,7 +131,6 @@ void main() {
     expect(editor.savedNames, ['Push-ups', 'Squats', 'Plank']);
     editor.expectOriginalsUnchanged();
   });
-
 
   testWidgets('close with changes discards them without asking', (tester) async {
     final editor = _EditorHarness();
@@ -187,9 +188,126 @@ void main() {
     expect(editor.writes, isEmpty);
     editor.expectOriginalsUnchanged();
   });
+
+  group('break duration', () {
+    Future<void> openBreakSheet(WidgetTester tester) async {
+      await tester.tap(find.byType(BreakItem));
+      await tester.pumpAndSettle();
+    }
+
+    Finder pill(String label) => find.widgetWithText(ChoiceChip, label);
+
+    testWidgets('is hidden with fewer than two exercises', (tester) async {
+      final editor = _EditorHarness(count: 1);
+      await editor.pump(tester);
+
+      expect(find.byType(BreakItem), findsNothing);
+    });
+
+    testWidgets('shows the global default when the workout has none saved', (tester) async {
+      final editor = _EditorHarness();
+      await editor.pump(tester);
+
+      expect(find.text('${_defaultBreakSeconds}s'), findsOneWidget);
+      expect(find.text('Default'), findsOneWidget);
+    });
+
+    testWidgets('shows the saved value without a Default subtitle', (tester) async {
+      final editor = _EditorHarness(breakSeconds: 30);
+      await editor.pump(tester);
+
+      expect(find.text('30s'), findsOneWidget);
+      expect(find.text('Default'), findsNothing);
+    });
+
+    testWidgets('a picked preset is only saved on Save', (tester) async {
+      final editor = _EditorHarness();
+      await editor.pump(tester);
+
+      await openBreakSheet(tester);
+      await tester.tap(pill('30s'));
+      await _tapSheetDone(tester);
+      expect(find.text('30s'), findsOneWidget);
+      expect(editor.writes, isEmpty);
+
+      await _save(tester);
+      expect(editor.savedBreak, 30);
+    });
+
+    testWidgets('the counter sets a custom value', (tester) async {
+      final editor = _EditorHarness();
+      await editor.pump(tester);
+
+      await openBreakSheet(tester);
+      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      await _tapSheetDone(tester);
+      await _save(tester);
+
+      expect(editor.savedBreak, _defaultBreakSeconds + 5);
+    });
+
+    testWidgets('the Default pill reverts to the global default', (tester) async {
+      final editor = _EditorHarness(breakSeconds: 30);
+      await editor.pump(tester);
+
+      await openBreakSheet(tester);
+      await tester.tap(pill('Default'));
+      await _tapSheetDone(tester);
+      expect(find.text('${_defaultBreakSeconds}s'), findsOneWidget);
+      expect(find.text('Default'), findsOneWidget);
+
+      await _save(tester);
+      expect(editor.savedBreak, isNull);
+    });
+
+    testWidgets('dismissing the sheet keeps the last picked value', (tester) async {
+      final editor = _EditorHarness(breakSeconds: 30);
+      await editor.pump(tester);
+
+      await openBreakSheet(tester);
+      await tester.tap(pill('15s'));
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+
+      expect(find.text('15s'), findsOneWidget);
+      await _save(tester);
+      expect(editor.savedBreak, 15);
+    });
+
+    testWidgets('a change counts as unsaved', (tester) async {
+      final editor = _EditorHarness();
+      await editor.pump(tester);
+
+      await openBreakSheet(tester);
+      await tester.tap(pill('30s'));
+      await _tapSheetDone(tester);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(editor.popPrompts, 1);
+      expect(editor.writes, isEmpty);
+    });
+
+    testWidgets('Save writes exercise and break changes together once', (tester) async {
+      final editor = _EditorHarness();
+      await editor.pump(tester);
+
+      await tester.drag(find.text('Plank'), const Offset(-600, 0));
+      await tester.pumpAndSettle();
+      await openBreakSheet(tester);
+      await tester.tap(pill('30s'));
+      await _tapSheetDone(tester);
+      await _save(tester);
+
+      expect(editor.writes, hasLength(1));
+      expect(editor.savedNames, ['Push-ups', 'Squats']);
+      expect(editor.savedBreak, 30);
+    });
+  });
 }
 
 const _homeText = 'home';
+const _defaultBreakSeconds = 10;
 
 Finder _sheetField(int index) =>
     find.descendant(of: find.byType(ExerciseSheet), matching: find.byType(TextField)).at(index);
@@ -224,15 +342,17 @@ final _defaultExercises = <Exercise Function()>[
 
 class _EditorHarness {
   final List<Exercise> exercises;
+  final int? breakSeconds;
   final bool confirmDiscard;
   final bool initiallyOpenSheet;
-  final writes = <List<Exercise>>[];
+  final writes = <({List<Exercise> exercises, int? breakSeconds})>[];
   late final List<String> _originalValues = _values;
   int popPrompts = 0;
 
   _EditorHarness(
       {int? count,
       Exercise Function(int)? makeExercise,
+      this.breakSeconds,
       this.confirmDiscard = false,
       this.initiallyOpenSheet = false})
       : exercises = makeExercise != null
@@ -241,21 +361,27 @@ class _EditorHarness {
 
   List<String> get _values => exercises.map((e) => e.toString()).toList();
 
-  List<String> get savedNames => writes.single.map((e) => e.name).toList();
+  List<String> get savedNames => writes.single.exercises.map((e) => e.name).toList();
+
+  int? get savedBreak => writes.single.breakSeconds;
 
   Future<void> pump(WidgetTester tester) async {
     // Snapshot before any interaction.
     _originalValues;
-    await tester.pumpWidget(localizedApp(const Scaffold(body: Text(_homeText))));
+    await tester.pumpWidget(SettingsProvider(
+      settings: MockSettingsService(breakDurationSeconds: _defaultBreakSeconds),
+      child: localizedApp(const Scaffold(body: Text(_homeText))),
+    ));
     tester.state<NavigatorState>(find.byType(Navigator)).push(MaterialPageRoute<void>(
         fullscreenDialog: true,
         builder: (_) => EditExercisesScreen(
               workoutKey: 42,
               exercises: exercises,
-              updateWorkoutExercises: (key, newExercises) async {
+              breakSeconds: breakSeconds,
+              updateWorkout: (key, {required exercises, required breakSeconds}) async {
                 expect(key, 42);
-                writes.add(newExercises);
-                return Workout('w', newExercises);
+                writes.add((exercises: exercises, breakSeconds: breakSeconds));
+                return Workout('w', exercises, breakSeconds);
               },
               onPop: () async {
                 popPrompts++;

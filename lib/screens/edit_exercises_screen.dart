@@ -2,7 +2,10 @@ import 'dart:math';
 
 import 'package:count_up/models/exercise.dart';
 import 'package:count_up/models/workout.dart';
+import 'package:count_up/state/settings_provider.dart';
 import 'package:count_up/utils/workout_constants.dart';
+import 'package:count_up/widgets/break_item.dart';
+import 'package:count_up/widgets/break_sheet.dart';
 import 'package:count_up/widgets/exercise_item.dart';
 import 'package:count_up/widgets/exercise_sheet.dart';
 import 'package:flutter/foundation.dart';
@@ -14,15 +17,20 @@ import 'package:count_up/gen/l10n/app_localizations.dart';
 class EditExercisesScreen extends StatefulWidget {
   final int workoutKey;
   final List<Exercise> exercises;
-  final Future<Workout?> Function(int key, List<Exercise> newExercises) updateWorkoutExercises;
+
+  /// When null, it uses the global default.
+  final int? breakSeconds;
+  final Future<Workout?> Function(int key,
+      {required List<Exercise> exercises, required int? breakSeconds}) updateWorkout;
   final Future<bool> Function() onPop;
   final bool initiallyOpenSheet;
   const EditExercisesScreen(
       {super.key,
-      required this.updateWorkoutExercises,
+      required this.updateWorkout,
       required this.onPop,
       required this.workoutKey,
       required this.exercises,
+      required this.breakSeconds,
       this.initiallyOpenSheet = false});
 
   @override
@@ -31,8 +39,10 @@ class EditExercisesScreen extends StatefulWidget {
 
 class _EditExercisesScreenState extends State<EditExercisesScreen> {
   late final List<Exercise> _exercises = List.of(widget.exercises);
+  late int? _breakSeconds = widget.breakSeconds;
 
-  bool get _hasChanges => !listEquals(widget.exercises, _exercises);
+  bool get _hasChanges =>
+      !listEquals(widget.exercises, _exercises) || _breakSeconds != widget.breakSeconds;
 
   @override
   void initState() {
@@ -89,7 +99,8 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
 
   Future<void> _save() async {
     if (_hasChanges) {
-      await widget.updateWorkoutExercises(widget.workoutKey, List.of(_exercises));
+      await widget.updateWorkout(widget.workoutKey,
+          exercises: List.of(_exercises), breakSeconds: _breakSeconds);
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -138,6 +149,27 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
     );
   }
 
+  int get _defaultBreakSeconds => SettingsProvider.of(context).breakDurationSeconds;
+
+  Future<void> _editBreak() => showBreakSheet(
+        context,
+        seconds: _breakSeconds,
+        defaultSeconds: _defaultBreakSeconds,
+        onChanged: (seconds) => setState(() => _breakSeconds = seconds),
+      );
+
+  Widget _breakRow(BuildContext context) {
+    return ListTile(
+      titleAlignment: ListTileTitleAlignment.center,
+      leading: const BreakIcon(),
+      title: BreakItem(
+        seconds: _breakSeconds ?? _defaultBreakSeconds,
+        isDefault: _breakSeconds == null,
+      ),
+      onTap: _editBreak,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -176,6 +208,7 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
                 : ReorderableListView.builder(
                     buildDefaultDragHandles: false,
                     padding: const EdgeInsets.only(bottom: 80),
+                    header: _exercises.length > 1 ? _breakRow(context) : null,
                     itemCount: _exercises.length,
                     itemBuilder: _buildRow,
                     onReorder: _reorder,

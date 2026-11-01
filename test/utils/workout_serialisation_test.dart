@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:count_up/models/exercise.dart';
 import 'package:count_up/models/workout.dart';
+import 'package:count_up/services/settings_service.dart';
 import 'package:count_up/utils/workout_serialisation.dart';
 import 'package:test/test.dart';
 
@@ -63,6 +64,18 @@ void main() {
       expect(restored.exercises[1], isA<RepExercise>());
       expect((restored.exercises[1] as RepExercise).reps, 12);
     });
+
+    test('round-trips a saved break duration', () {
+      final workout = Workout("Abs", [DurationExercise("Plank", 10)], 30);
+
+      expect(importFromJson(exportJson(workout)).breakSeconds, 30);
+    });
+
+    test('omits break duration when none is saved', () {
+      final workout = Workout("Abs", [DurationExercise("Plank", 10)]);
+
+      expect(exportJson(workout), isNot(contains('breakSeconds')));
+    });
   });
 
   group('JSON import works correctly', () {
@@ -91,6 +104,17 @@ void main() {
       expect(workout.exercises[0].name, equals("Crunches"));
       expect(workout.exercises[0], isA<DurationExercise>());
       expect((workout.exercises[0] as DurationExercise).duration, equals(10));
+      expect(workout.breakSeconds, isNull);
+    });
+    test('clamps an out-of-range break duration', () {
+      final json = '{ "name": "Abs", "exercises": [], "breakSeconds": 999 }';
+
+      expect(importFromJson(json).breakSeconds, SettingsService.maxBreakDurationSeconds);
+    });
+    test('throws TypeError for a malformed break duration', () {
+      final json = '{ "name": "Abs", "exercises": [], "breakSeconds": "thirty" }';
+
+      expect(() => importFromJson(json), throwsA(TypeMatcher<TypeError>()));
     });
     test('throws FormatException for invalid JSON', () {
       final json = '''
@@ -108,8 +132,7 @@ void main() {
             ]
         }
         ''';
-      expect(
-          () => importFromJson(json), throwsA(TypeMatcher<FormatException>()));
+      expect(() => importFromJson(json), throwsA(TypeMatcher<FormatException>()));
     });
     test('throws TypeError for incorrect Workout structure', () {
       final json = '''
@@ -131,10 +154,8 @@ void main() {
             ]
         }
         ''';
-      expect(
-          () => importFromJson(json),
-          throwsA(isA<UnknownExerciseTypeException>()
-              .having((e) => e.type, 'type', 'burpee')));
+      expect(() => importFromJson(json),
+          throwsA(isA<UnknownExerciseTypeException>().having((e) => e.type, 'type', 'burpee')));
     });
 
     test('rejects a malformed rep count without a partial import', () {
@@ -188,13 +209,11 @@ void main() {
       expect(cardio['exercises'][0]['type'], 'duration');
       expect(cardio['exercises'][0]['duration'], 30);
 
-      final strength =
-          jsonDecode(utf8.decode(entriesByName['strength.json']!.content));
+      final strength = jsonDecode(utf8.decode(entriesByName['strength.json']!.content));
       expect(strength['exercises'][0]['type'], 'rep');
       expect(strength['exercises'][0]['reps'], 12);
 
-      final fullBody =
-          jsonDecode(utf8.decode(entriesByName['full-body.json']!.content));
+      final fullBody = jsonDecode(utf8.decode(entriesByName['full-body.json']!.content));
       expect(fullBody['exercises'][0]['type'], 'duration');
       expect(fullBody['exercises'][1]['type'], 'rep');
     });

@@ -19,17 +19,20 @@ class WorkoutAdapter extends TypeAdapter<Workout> {
     return Workout(
       fields[0] as String,
       (fields[1] as List).cast<Exercise>(),
+      fields[2] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Workout obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj._name)
       ..writeByte(1)
-      ..write(obj._exercises);
+      ..write(obj._exercises)
+      ..writeByte(2)
+      ..write(obj._breakSeconds);
   }
 
   @override
@@ -38,7 +41,5 @@ class WorkoutAdapter extends TypeAdapter<Workout> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is WorkoutAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      other is WorkoutAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }

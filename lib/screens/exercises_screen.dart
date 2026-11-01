@@ -7,6 +7,7 @@ import 'package:count_up/services/timer_audio_service.dart';
 import 'package:count_up/services/workout_backup_service.dart';
 import 'package:count_up/state/settings_provider.dart';
 import 'package:count_up/utils/error_formatters.dart';
+import 'package:count_up/widgets/break_item.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/widgets/icon_text_item.dart';
 import 'package:count_up/widgets/workout_name_form.dart';
@@ -98,7 +99,8 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             fullscreenDialog: true,
             builder: (_) => EditExercisesScreen(
                 exercises: _w.exercises,
-                updateWorkoutExercises: widget.db.updateWorkoutExercises,
+                breakSeconds: _w.breakSeconds,
+                updateWorkout: widget.db.updateWorkout,
                 workoutKey: widget.workoutKey,
                 onPop: _onPop,
                 initiallyOpenSheet: initiallyOpenSheet)));
@@ -133,7 +135,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         builder: (context) => TimerScreen(
           e: _w.exercises,
           player: TimerAudioService(Assets.audioExerciseChange, volume: settings.soundVolume),
-          breakSeconds: settings.breakDurationSeconds,
+          breakSeconds: _w.breakSeconds ?? settings.breakDurationSeconds,
         ),
       ),
     );
@@ -266,7 +268,20 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ],
             ),
           ),
-          Expanded(child: SafeArea(top: false, child: StaticExerciseList(exercises: _w.exercises))),
+          Expanded(
+              child: SafeArea(
+                  top: false,
+                  child: StaticExerciseList(
+                    exercises: _w.exercises,
+                    header: _w.exercises.length > 1
+                        ? BreakItem(
+                            seconds: _w.breakSeconds ??
+                                SettingsProvider.of(context).breakDurationSeconds,
+                            isDefault: _w.breakSeconds == null,
+                            leading: const BreakIcon(),
+                          )
+                        : null,
+                  ))),
         ]));
   }
 }

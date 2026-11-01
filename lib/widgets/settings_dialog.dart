@@ -74,7 +74,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
             children: [
               Expanded(
                 child: Text(
-                  l10n.breakDurationLabel,
+                  l10n.breakBetweenExercisesLabel,
                   style: const TextStyle(fontSize: 16),
                 ),
               ),

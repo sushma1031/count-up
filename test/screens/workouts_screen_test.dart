@@ -124,7 +124,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pumpAndSettle();
 
-    expect(find.text('Break'), findsOneWidget);
+    expect(find.text('Break between exercises'), findsOneWidget);
     expect(find.text('0s'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.add_circle_outline).last);

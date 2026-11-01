@@ -2,18 +2,26 @@ import 'package:count_up/models/exercise.dart';
 import 'package:count_up/models/workout.dart';
 import 'package:count_up/screens/edit_exercises_screen.dart';
 import 'package:count_up/screens/exercises_screen.dart';
+import 'package:count_up/screens/timer_screen.dart';
+import 'package:count_up/state/settings_provider.dart';
+import 'package:count_up/widgets/break_item.dart';
 import 'package:count_up/widgets/workout_name_form.dart';
 import 'package:count_up/widgets/exercise_sheet.dart';
 import 'package:count_up/widgets/static_exercises_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../services/mock_settings_service.dart';
 import '../services/mock_storage_service.dart';
 import '../test_app.dart';
 
-Future<int> _pumpScreen(WidgetTester tester, MockStorageService db, List<Exercise> exercises) async {
-  final workoutKey = await db.addWorkout(Workout('Workout', exercises));
-  await tester.pumpWidget(localizedApp(ExercisesScreen(db: db, workoutKey: workoutKey)));
+Future<int> _pumpScreen(WidgetTester tester, MockStorageService db, List<Exercise> exercises,
+    {MockSettingsService? settings, int? breakSeconds}) async {
+  final workoutKey = await db.addWorkout(Workout('Workout', exercises, breakSeconds));
+  await tester.pumpWidget(SettingsProvider(
+    settings: settings ?? MockSettingsService(),
+    child: localizedApp(ExercisesScreen(db: db, workoutKey: workoutKey)),
+  ));
   await tester.pumpAndSettle();
   return workoutKey;
 }
@@ -21,8 +29,8 @@ Future<int> _pumpScreen(WidgetTester tester, MockStorageService db, List<Exercis
 Future<void> _openMenuItem(WidgetTester tester, WorkoutAction action) async {
   await tester.tap(find.byWidgetPredicate((w) => w is PopupMenuButton<WorkoutAction>));
   await tester.pumpAndSettle();
-  await tester.tap(find.byWidgetPredicate(
-      (w) => w is PopupMenuItem<WorkoutAction> && w.value == action));
+  await tester
+      .tap(find.byWidgetPredicate((w) => w is PopupMenuItem<WorkoutAction> && w.value == action));
   await tester.pumpAndSettle();
 }
 
@@ -39,8 +47,7 @@ Future<void> _openRename(WidgetTester tester) async {
 Future<void> _renameTo(WidgetTester tester, String name) async {
   await _openRename(tester);
   await tester.enterText(find.byType(TextFormField), name);
-  await tester.tap(
-      find.descendant(of: find.byType(WorkoutNameForm), matching: find.text('Save')));
+  await tester.tap(find.descendant(of: find.byType(WorkoutNameForm), matching: find.text('Save')));
   await tester.pumpAndSettle();
 }
 
@@ -50,9 +57,7 @@ void main() {
   setUp(() => db = MockStorageService());
   tearDown(() => db.notifier.dispose());
 
-
-  testWidgets('exercises added in Edit Exercises are persisted on Save',
-      (tester) async {
+  testWidgets('exercises added in Edit Exercises are persisted on Save', (tester) async {
     final workoutKey = await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
     await _openMenuItem(tester, WorkoutAction.editExercise);
@@ -133,7 +138,6 @@ void main() {
     expect(db.getWorkout(workoutKey)!.name, 'Workout');
   });
 
-
   testWidgets('dismissing the rename dialog preserves original name', (tester) async {
     final workoutKey = await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
@@ -144,5 +148,62 @@ void main() {
 
     expect(find.byType(WorkoutNameForm), findsNothing);
     expect(db.getWorkout(workoutKey)!.name, 'Workout');
+  });
+
+  group('workout break duration', () {
+    final twoExercises = [RepExercise('Squats', 10), RepExercise('Lunges', 10)];
+
+    testWidgets('is hidden for a single-exercise workout', (tester) async {
+      await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
+
+      expect(find.byType(BreakItem), findsNothing);
+    });
+
+    testWidgets('shows the global default when the workout has none saved', (tester) async {
+      await _pumpScreen(tester, db, twoExercises,
+          settings: MockSettingsService(breakDurationSeconds: 10));
+
+      expect(find.text('10s'), findsOneWidget);
+      expect(find.text('Default'), findsOneWidget);
+    });
+
+    testWidgets('shows the saved value when the workout has one', (tester) async {
+      await _pumpScreen(tester, db, twoExercises,
+          settings: MockSettingsService(breakDurationSeconds: 10), breakSeconds: 30);
+
+      expect(find.text('30s'), findsOneWidget);
+      expect(find.text('Default'), findsNothing);
+    });
+
+    testWidgets('a change saved in Edit Exercises is stored on the workout and shown',
+        (tester) async {
+      final settings = MockSettingsService(breakDurationSeconds: 10);
+      final workoutKey = await _pumpScreen(tester, db, twoExercises, settings: settings);
+
+      await _openMenuItem(tester, WorkoutAction.editExercise);
+      await tester.tap(find.byType(BreakItem));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, '30s'));
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      await _tapAppBarSave(tester);
+
+      expect(db.getWorkout(workoutKey)!.breakSeconds, 30);
+      expect(settings.breakDurationSeconds, 10);
+      expect(find.text('30s'), findsOneWidget);
+      expect(find.text('Default'), findsNothing);
+    });
+
+    testWidgets('saved value is passed to the timer', (tester) async {
+      await _pumpScreen(tester, db, twoExercises,
+          settings: MockSettingsService(breakDurationSeconds: 10, preWorkoutCountdownSeconds: 0),
+          breakSeconds: 30);
+
+      await tester.tap(find.byTooltip('Start workout'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(tester.widget<TimerScreen>(find.byType(TimerScreen)).breakSeconds, 30);
+    });
   });
 }
