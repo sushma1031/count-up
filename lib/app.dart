@@ -52,14 +52,21 @@ class CountUpApp extends StatelessWidget {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           theme: ThemeData(
-              colorScheme: colorScheme,
-              appBarTheme:
-                  const AppBarTheme(backgroundColor: Colors.transparent, scrolledUnderElevation: 0),
-              snackBarTheme: const SnackBarThemeData(
-                  behavior: SnackBarBehavior.floating, insetPadding: EdgeInsets.all(16)),
-              floatingActionButtonTheme: FloatingActionButtonThemeData(
-                  backgroundColor: colorScheme.secondary,
-                  foregroundColor: colorScheme.onSecondary)),
+                  colorScheme: colorScheme,
+                  appBarTheme: const AppBarTheme(
+                      backgroundColor: Colors.transparent, scrolledUnderElevation: 0),
+                  snackBarTheme: const SnackBarThemeData(
+                      behavior: SnackBarBehavior.floating, insetPadding: EdgeInsets.all(16)),
+                  floatingActionButtonTheme: FloatingActionButtonThemeData(
+                      backgroundColor: colorScheme.secondary,
+                      foregroundColor: colorScheme.onSecondary))
+              .copyWith(
+            sliderTheme: SliderThemeData(
+              // ignore: deprecated_member_use
+              year2023: false,
+              trackHeight: 12.0,
+            ),
+          ),
           home: LifecycleWatcher(
             child: HomePage(db: db),
           )),
