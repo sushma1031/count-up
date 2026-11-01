@@ -144,6 +144,8 @@ class _TimerProviderState extends State<TimerProvider>
   @override
   void didUpdateWidget(old) {
     super.didUpdateWidget(old);
+    _timer.cancel(); // rebuild should not leave two periodic timers running
+
     _timeLeft = widget.duration;
     _controller.duration = widget.duration;
     _controller.reset();
