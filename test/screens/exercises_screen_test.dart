@@ -181,7 +181,9 @@ void main() {
       final workoutKey = await _pumpScreen(tester, db, twoExercises, settings: settings);
 
       await _openMenuItem(tester, WorkoutAction.editExercise);
-      await tester.tap(find.byType(BreakItem));
+      await tester.tap(
+        find.ancestor(of: find.byType(BreakItem), matching: find.byType(ListTile)),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ChoiceChip, '30s'));
       await tester.tap(find.text('Done'));
