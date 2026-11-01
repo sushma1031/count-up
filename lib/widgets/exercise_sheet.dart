@@ -109,7 +109,11 @@ class _ExerciseSheetState extends State<ExerciseSheet> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ),
-                  TextButton(onPressed: _done, child: Text(l10n.doneBtn)),
+                  FilledButton(
+                    style: FilledButton.styleFrom(visualDensity: VisualDensity(vertical: -1)),
+                    onPressed: _done,
+                    child: Text(l10n.doneBtn),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),

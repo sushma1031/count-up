@@ -70,7 +70,8 @@ class _BreakSheetState extends State<BreakSheet> {
                   child:
                       Text(l10n.breakDurationLabel, style: Theme.of(context).textTheme.titleLarge),
                 ),
-                TextButton(
+                FilledButton(
+                  style: FilledButton.styleFrom(visualDensity: VisualDensity(vertical: -1)),
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(l10n.doneBtn),
                 ),
