@@ -45,9 +45,11 @@ class WorkoutsScreen extends StatelessWidget {
   Future<void> _confirmAndDeleteAllWorkouts(BuildContext context) async {
     final len = db.size;
     if (len == 0) return;
+    final l10n = AppLocalizations.of(context);
     final confirmed = await DangerConfirmDialog.show(
       context,
-      message: AppLocalizations.of(context).confirmDeleteWorkouts(len),
+      message: l10n.confirmDeleteWorkouts(len),
+      confirmLabel: l10n.deleteAllBtn,
     );
     if (confirmed) await db.clear();
   }

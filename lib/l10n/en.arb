@@ -22,8 +22,13 @@
       }
     }
   },
-  "yesBtn": "Yes",
-  "noBtn": "No",
+
+  "stayBtn": "Stay",
+  "exitBtn": "Exit",
+  "cancelBtn": "Cancel",
+  "discardBtn": "Discard",
+  "deleteBtn": "Delete",
+  "deleteAllBtn": "Delete All",
   "importErrorFormat": "Invalid file format.",
   "importErrorType": "One or more fields contain invalid or unexpected values.",
   "importErrorUnknownExerciseType": "Unsupported exercise type: {type}",

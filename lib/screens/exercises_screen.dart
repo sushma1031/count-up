@@ -46,9 +46,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ),
               actions: <Widget>[
                 TextButton(
-                    child: Text(l10n.noBtn), onPressed: () => Navigator.of(context).pop(false)),
+                    child: Text(l10n.cancelBtn), onPressed: () => Navigator.of(context).pop(false)),
                 TextButton(
-                    child: Text(l10n.yesBtn), onPressed: () => Navigator.of(context).pop(true)),
+                    child: Text(l10n.discardBtn), onPressed: () => Navigator.of(context).pop(true)),
               ],
             );
           },
@@ -57,9 +57,11 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   }
 
   Future<bool> _confirmAndDeleteWorkout(int workoutKey) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await DangerConfirmDialog.show(
       context,
-      message: AppLocalizations.of(context).confirmDeleteWorkout(_w.name, _w.exercises.length),
+      message: l10n.confirmDeleteWorkout(_w.name, _w.exercises.length),
+      confirmLabel: l10n.deleteBtn,
     );
     if (confirmed) await widget.db.deleteWorkout(workoutKey);
     return confirmed;

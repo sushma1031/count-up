@@ -3,6 +3,7 @@ import 'package:count_up/screens/workouts_screen.dart';
 import 'package:count_up/state/settings_provider.dart';
 import 'package:count_up/widgets/volume_slider.dart';
 import 'package:count_up/widgets/counter.dart';
+import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/widgets/settings_dialog.dart';
 import 'package:count_up/widgets/workout_card.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
@@ -82,9 +83,10 @@ void main() {
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete All'));
-    await tester.pump();
-    await tester.tap(find.text('Yes'));
-    await tester.pump();
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(
+        of: find.byType(DangerConfirmDialog), matching: find.text('Delete All')));
+    await tester.pumpAndSettle();
     expect(find.byType(WorkoutCard), findsNothing);
   });
 
@@ -122,7 +124,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pumpAndSettle();
 
-    expect(find.text('Break between exercises'), findsOneWidget);
+    expect(find.text('Break'), findsOneWidget);
     expect(find.text('0s'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.add_circle_outline).last);
