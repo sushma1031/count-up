@@ -4,6 +4,7 @@ class Counter extends StatelessWidget {
   final int value;
   final int min;
   final int max;
+  final int step;
   final ValueChanged<int> onChanged;
 
   const Counter({
@@ -11,6 +12,7 @@ class Counter extends StatelessWidget {
     required this.value,
     this.min = 0,
     this.max = 10,
+    this.step = 1,
     required this.onChanged,
   });
 
@@ -22,10 +24,10 @@ class Counter extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.remove_circle_outline),
           iconSize: 20,
-          onPressed: value > min ? () => onChanged(value - 1) : null,
+          onPressed: value > min ? () => onChanged((value - step).clamp(min, max)) : null,
         ),
         SizedBox(
-          width: 30,
+          width: 45,
           child: Text(
             '${value}s',
             textAlign: TextAlign.center,
@@ -35,7 +37,7 @@ class Counter extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           iconSize: 20,
-          onPressed: value < max ? () => onChanged(value + 1) : null,
+          onPressed: value < max ? () => onChanged((value + step).clamp(min, max)) : null,
         ),
       ],
     );

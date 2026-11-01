@@ -14,12 +14,16 @@ class SettingsDialog extends StatefulWidget {
 }
 
 class _SettingsDialogState extends State<SettingsDialog> {
+  static const _settingsDivider = Divider(height: 24);
+
   late int _preWorkoutCountdownSeconds;
+  late int _breakDurationSeconds;
 
   @override
   void initState() {
     super.initState();
     _preWorkoutCountdownSeconds = widget.settings.preWorkoutCountdownSeconds;
+    _breakDurationSeconds = widget.settings.breakDurationSeconds;
   }
 
   @override
@@ -41,7 +45,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
             initial: widget.settings.soundVolume,
             onChanged: widget.settings.setSoundVolume,
           ),
-          const Divider(height: 32),
+          _settingsDivider,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -60,6 +64,30 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     _preWorkoutCountdownSeconds = value;
                   });
                   widget.settings.setPreWorkoutCountdownSeconds(value);
+                },
+              ),
+            ],
+          ),
+          _settingsDivider,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.breakDurationLabel,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              Counter(
+                value: _breakDurationSeconds,
+                min: SettingsService.minBreakDurationSeconds,
+                max: SettingsService.maxBreakDurationSeconds,
+                step: SettingsService.breakDurationStepSeconds,
+                onChanged: (value) {
+                  setState(() {
+                    _breakDurationSeconds = value;
+                  });
+                  widget.settings.setBreakDurationSeconds(value);
                 },
               ),
             ],

@@ -7,10 +7,12 @@ class HiveSettingsService implements SettingsService {
 
   static const String _soundVolumeKey = 'timerVolume';
   static const String _preWorkoutCountdownSeconds = 'preWorkoutCountdownSeconds';
+  static const String _breakDurationSecondsKey = 'breakDurationSeconds';
 
   Box? _settingsBox;
   double _fallbackSoundVolume = 0.5;
   int _fallbackPreWorkoutCountdownSeconds = SettingsService.defaultPreWorkoutCountdownSeconds;
+  int _fallbackBreakDurationSeconds = SettingsService.defaultBreakDurationSeconds;
 
   Future<void> init() async {
     try {
@@ -49,6 +51,15 @@ class HiveSettingsService implements SettingsService {
   }
 
   @override
+  int get breakDurationSeconds {
+    if (_settingsBox == null) return _fallbackBreakDurationSeconds;
+    return _settingsBox!.get(
+      _breakDurationSecondsKey,
+      defaultValue: _fallbackBreakDurationSeconds,
+    ) as int;
+  }
+
+  @override
   Future<void> setSoundVolume(double value) async {
     _fallbackSoundVolume = value.clamp(0.0, 1.0);
     await _settingsBox?.put(_soundVolumeKey, _fallbackSoundVolume);
@@ -63,6 +74,18 @@ class HiveSettingsService implements SettingsService {
     await _settingsBox?.put(
       _preWorkoutCountdownSeconds,
       _fallbackPreWorkoutCountdownSeconds,
+    );
+  }
+
+  @override
+  Future<void> setBreakDurationSeconds(int value) async {
+    _fallbackBreakDurationSeconds = value.clamp(
+      SettingsService.minBreakDurationSeconds,
+      SettingsService.maxBreakDurationSeconds,
+    );
+    await _settingsBox?.put(
+      _breakDurationSecondsKey,
+      _fallbackBreakDurationSeconds,
     );
   }
 }

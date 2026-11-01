@@ -9,8 +9,10 @@ class TimerScreen extends StatelessWidget {
   final List<Exercise> e;
 
   final AudioService player;
+  final int breakSeconds;
 
-  const TimerScreen({super.key, required this.e, required this.player});
+  const TimerScreen(
+      {super.key, required this.e, required this.player, this.breakSeconds = 0});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,6 +26,7 @@ class TimerScreen extends StatelessWidget {
           child: WorkoutProvider(
         exercises: e,
         player: player,
+        breakSeconds: breakSeconds,
       )),
     );
   }

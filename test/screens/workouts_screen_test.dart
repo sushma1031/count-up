@@ -107,13 +107,28 @@ void main() {
 
     expect(find.byType(SettingsDialog), findsOneWidget);
     expect(find.text('Pre-workout countdown'), findsOneWidget);
-    expect(find.byType(Counter), findsOneWidget);
+    expect(find.byType(Counter), findsNWidgets(2));
     expect(find.text('5s'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.add_circle_outline));
+    await tester.tap(find.byIcon(Icons.add_circle_outline).first);
     await tester.pump();
 
     expect(mockSettings.preWorkoutCountdownSeconds, 6);
     expect(find.text('6s'), findsOneWidget);
+  });
+
+  testWidgets('updates break duration from settings in steps of 5', (tester) async {
+    await tester.pumpWidget(screen);
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Break between exercises'), findsOneWidget);
+    expect(find.text('0s'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.add_circle_outline).last);
+    await tester.pump();
+
+    expect(mockSettings.breakDurationSeconds, 5);
+    expect(find.text('5s'), findsNWidgets(2));
   });
 }

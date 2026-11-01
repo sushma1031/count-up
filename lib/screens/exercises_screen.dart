@@ -124,13 +124,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   }
 
   void _startWorkout() {
-    final alertVolume = SettingsProvider.of(context).soundVolume;
+    final settings = SettingsProvider.of(context);
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => TimerScreen(
           e: _w.exercises,
-          player: TimerAudioService(Assets.audioExerciseChange, volume: alertVolume),
+          player: TimerAudioService(Assets.audioExerciseChange, volume: settings.soundVolume),
+          breakSeconds: settings.breakDurationSeconds,
         ),
       ),
     );

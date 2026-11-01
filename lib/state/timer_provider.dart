@@ -15,6 +15,7 @@ class TimerProvider extends StatefulWidget {
   final ValueChanged<void> nextExercise;
   final ValueChanged<void> previousExercise;
   final AudioService player;
+  final bool isBreak;
   const TimerProvider(
       {super.key,
       required this.name,
@@ -25,7 +26,8 @@ class TimerProvider extends StatefulWidget {
       required this.previousExercise,
       required this.player,
       required this.workoutProgress,
-      this.nextName});
+      this.nextName,
+      this.isBreak = false});
   @override
   State<TimerProvider> createState() => _TimerProviderState();
 }
@@ -38,6 +40,10 @@ class _TimerProviderState extends State<TimerProvider>
   late AnimationController _controller;
   bool _isPaused = false;
   var oneSec = Duration(seconds: 1);
+  static const _restartThresholdSeconds = 3;
+
+  bool get _restartsOnPrevious =>
+      !widget.isBreak && widget.duration.inSeconds - _timeLeft.inSeconds > _restartThresholdSeconds;
   @override
   void initState() {
     super.initState();
@@ -98,7 +104,7 @@ class _TimerProviderState extends State<TimerProvider>
   Future<void> goPrevious() async {
     await widget.player.stop();
 
-    if (widget.duration.inSeconds - _timeLeft.inSeconds > 2) {
+    if (_restartsOnPrevious) {
       restartTimer();
     } else {
       _timer.cancel();
@@ -141,8 +147,6 @@ class _TimerProviderState extends State<TimerProvider>
     _timeLeft = widget.duration;
     _controller.duration = widget.duration;
     _controller.reset();
-
-    // perform any other operations here, like setting a short break, etc.
 
     startTimer();
   }

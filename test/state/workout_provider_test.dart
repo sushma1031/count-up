@@ -152,4 +152,94 @@ void main() {
 
     expect(find.byType(WorkoutComplete), findsOneWidget);
   });
+
+  group('breaks', () {
+    Widget buildWithBreaks(List<Exercise> exercises, int breakSeconds) {
+      return MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+              body: WorkoutProvider(
+                  exercises: exercises,
+                  player: mockPlayer,
+                  breakSeconds: breakSeconds)));
+    }
+
+    testWidgets('break follows an exercise and keeps progress',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(buildWithBreaks(exercises, 3));
+
+      await tester.pump(Duration(seconds: 7));
+      expect(find.text('Break'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('1/2'), findsOneWidget);
+    });
+
+    testWidgets('break auto-advances to the next exercise',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(buildWithBreaks(exercises, 3));
+
+      await tester.pump(Duration(seconds: 7));
+      await tester.pump(Duration(seconds: 4));
+      expect(find.text('Crunches'), findsOneWidget);
+      expect(find.text('5'), findsOneWidget);
+      expect(find.text('2/2'), findsOneWidget);
+    });
+
+    testWidgets('next during a break skips it', (WidgetTester tester) async {
+      await tester.pumpWidget(buildWithBreaks(exercises, 10));
+      await tester.pump(Duration(seconds: 7));
+
+      await tester.tap(find.byIcon(Icons.skip_next));
+      await tester.pump();
+      expect(find.text('Crunches'), findsOneWidget);
+      expect(find.text('5'), findsOneWidget);
+    });
+
+    testWidgets('previous during a break returns to the exercise',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(buildWithBreaks(exercises, 10));
+      await tester.pump(Duration(seconds: 7));
+      await tester.pump(Duration(seconds: 5));
+
+      await tester.tap(find.byIcon(Icons.skip_previous));
+      await tester.pump();
+      expect(find.text('Plank'), findsOneWidget);
+      expect(find.text('6'), findsOneWidget);
+    });
+
+    testWidgets('previous from an exercise skips the break',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(buildWithBreaks(exercises, 10));
+      await tester.pump(Duration(seconds: 7));
+      await tester.tap(find.byIcon(Icons.skip_next));
+      await tester.pump();
+      expect(find.text('Crunches'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.skip_previous));
+      await tester.pump();
+      expect(find.text('Plank'), findsOneWidget);
+      expect(find.text('Break'), findsNothing);
+    });
+
+    testWidgets('no break after the last exercise',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+          buildWithBreaks([DurationExercise('Plank', 2)], 10));
+
+      await tester.pump(Duration(seconds: 3));
+      await tester.pump();
+      expect(find.byType(WorkoutComplete), findsOneWidget);
+    });
+
+    testWidgets('break follows a rep exercise', (WidgetTester tester) async {
+      await tester.pumpWidget(buildWithBreaks(
+          [RepExercise('Push ups', 12), DurationExercise('Plank', 5)], 10));
+
+      await tester.tap(find.byIcon(Icons.check));
+      await tester.pump();
+      expect(find.text('Break'), findsOneWidget);
+      expect(find.text('10'), findsOneWidget);
+    });
+  });
 }
