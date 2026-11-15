@@ -1,6 +1,6 @@
 import 'package:count_up/utils/format.dart';
 import 'package:count_up/utils/workout_constants.dart';
-import 'package:count_up/widgets/offset_animated_text.dart';
+import 'package:count_up/widgets/next_up_header.dart';
 import 'package:count_up/widgets/reverse_circular_progress_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
@@ -36,47 +36,34 @@ class TimerWidget extends StatelessWidget {
     return Padding(
         padding: EdgeInsets.only(top: 32),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-              height: 50,
-              child: timeLeft.inSeconds > 5
-                  ? Container()
-                  : Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24),
-                      child: OffsetAnimatedText(
-                          nextName != null ? l10n.nextUp(nextName!) : l10n.lastOne))),
+          NextUpHeader(nextName: nextName, visible: timeLeft.inSeconds <= 5),
+          Padding(
+              padding: EdgeInsets.only(left: 24, right: 24),
+              child: Text(name,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: PlaybackStyles.exerciseName)),
           SizedBox(
-              height: 500,
+              height: PlaybackStyles.circleAndControlsHeight,
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Center(
-                        child: Stack(alignment: AlignmentDirectional.center, children: <Widget>[
-                      ReverseCircularProgressIndicator(
-                        controller: controller,
-                      ),
-                      Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                        Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                          Padding(
-                              padding: EdgeInsets.only(bottom: PlaybackStyles.nameBottomPadding),
-                              child: Container(
-                                  width: 200,
-                                  child: Text(name,
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                      style: PlaybackStyles.exerciseName))),
-                          Text('${formatDuration(timeLeft)}', style: PlaybackStyles.count)
-                        ]),
-                      ]),
-                      Align(
-                          heightFactor: 10,
-                          alignment: Alignment.bottomCenter,
-                          child: Text(
-                            workoutProgress,
-                            style: TextStyle(
-                                fontSize: 16, color: Theme.of(context).colorScheme.secondary),
-                          ))
-                    ])),
+                    SizedBox.square(
+                        dimension: PlaybackStyles.circleSize,
+                        child: Stack(alignment: Alignment.center, children: <Widget>[
+                          ReverseCircularProgressIndicator(
+                            controller: controller,
+                          ),
+                          Text(formatDuration(timeLeft), style: PlaybackStyles.count),
+                          Positioned(
+                              bottom: PlaybackStyles.progressBottomOffset,
+                              child: Text(
+                                workoutProgress,
+                                style: TextStyle(
+                                    fontSize: 16, color: Theme.of(context).colorScheme.secondary),
+                              ))
+                        ])),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [

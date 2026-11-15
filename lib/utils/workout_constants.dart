@@ -17,5 +17,8 @@ abstract class PlaybackStyles {
   static const TextStyle count = TextStyle(fontSize: 55, fontWeight: FontWeight.w300);
   static const double circleSize = 275;
   static const double circleStrokeWidth = 8;
-  static const double nameBottomPadding = 18;
+  static const double circleAndControlsHeight = 432;
+  static const double nextUpBottomOffset = 24;
+  // Distance of the workout progress label from the bottom of the circle.
+  static const double progressBottomOffset = 28;
 }
