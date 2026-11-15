@@ -26,11 +26,8 @@ Future<int> _pumpScreen(WidgetTester tester, MockStorageService db, List<Exercis
   return workoutKey;
 }
 
-Future<void> _openMenuItem(WidgetTester tester, WorkoutAction action) async {
-  await tester.tap(find.byWidgetPredicate((w) => w is PopupMenuButton<WorkoutAction>));
-  await tester.pumpAndSettle();
-  await tester
-      .tap(find.byWidgetPredicate((w) => w is PopupMenuItem<WorkoutAction> && w.value == action));
+Future<void> _openEditExercises(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('Edit Exercises'));
   await tester.pumpAndSettle();
 }
 
@@ -60,7 +57,7 @@ void main() {
   testWidgets('exercises added in Edit Exercises are persisted on Save', (tester) async {
     final workoutKey = await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
-    await _openMenuItem(tester, WorkoutAction.editExercise);
+    await _openEditExercises(tester);
     expect(find.byType(EditExercisesScreen), findsOneWidget);
 
     await tester.tap(find.byType(FloatingActionButton));
@@ -107,7 +104,7 @@ void main() {
   testWidgets('closing Edit Exercises without changes returns to the list', (tester) async {
     await _pumpScreen(tester, db, [DurationExercise('Plank', 60)]);
 
-    await _openMenuItem(tester, WorkoutAction.editExercise);
+    await _openEditExercises(tester);
     expect(find.byType(ExerciseSheet), findsNothing);
     await tester.tap(find.byType(CloseButton));
     await tester.pumpAndSettle();
@@ -180,7 +177,7 @@ void main() {
       final settings = MockSettingsService(breakDurationSeconds: 10);
       final workoutKey = await _pumpScreen(tester, db, twoExercises, settings: settings);
 
-      await _openMenuItem(tester, WorkoutAction.editExercise);
+      await _openEditExercises(tester);
       await tester.tap(
         find.ancestor(of: find.byType(BreakItem), matching: find.byType(ListTile)),
       );

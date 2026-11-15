@@ -16,7 +16,7 @@ import 'package:count_up/utils/assets.dart';
 import '../widgets/static_exercises_list.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
-enum WorkoutAction { editExercise, deleteWorkout, exportWorkout }
+enum WorkoutAction { deleteWorkout, exportWorkout }
 
 const int _kWorkoutNameMaxLines = 2;
 
@@ -181,13 +181,15 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
         appBar: AppBar(leading: BackButton(), actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_note),
+            tooltip: l10n.editExercisesTitle,
+            onPressed: () => _goToEditExercises(initiallyOpenSheet: false),
+          ),
           PopupMenuButton<WorkoutAction>(
               offset: Offset.fromDirection(90, 50),
               onSelected: (value) async {
                 switch (value) {
-                  case WorkoutAction.editExercise:
-                    await _goToEditExercises(initiallyOpenSheet: false);
-                    break;
                   case WorkoutAction.exportWorkout:
                     var error = await WorkoutBackupService(widget.db).exportWorkout(_w);
                     if (error != null) {
@@ -202,13 +204,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                 }
               },
               itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
-                    PopupMenuItem<WorkoutAction>(
-                      child: IconTextItem(
-                        icon: Icons.edit_note,
-                        text: l10n.editExercisesTitle,
-                      ),
-                      value: WorkoutAction.editExercise,
-                    ),
+
                     PopupMenuItem<WorkoutAction>(
                       child: IconTextItem(
                         icon: Icons.download,
