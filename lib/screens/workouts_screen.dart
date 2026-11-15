@@ -7,6 +7,7 @@ import 'package:count_up/widgets/workout_card.dart';
 import 'package:count_up/widgets/settings_dialog.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/utils/error_formatters.dart';
+import 'package:count_up/widgets/icon_text_item.dart';
 import '../widgets/workout_name_form.dart';
 import '../services/storage_service.dart';
 import '../services/workout_backup_service.dart';
@@ -112,15 +113,15 @@ class WorkoutsScreen extends StatelessWidget {
                 },
                 itemBuilder: (context) => <PopupMenuEntry<WorkoutCollectionAction>>[
                       PopupMenuItem<WorkoutCollectionAction>(
-                        child: Text(l10n.importWorkoutMenuItem),
+                        child: IconTextItem(icon: Icons.upload, text: l10n.importWorkoutMenuItem),
                         value: WorkoutCollectionAction.importWorkout,
                       ),
                       PopupMenuItem<WorkoutCollectionAction>(
-                        child: Text(l10n.exportAllMenuItem),
+                        child: IconTextItem(icon: Icons.download, text: l10n.exportAllMenuItem),
                         value: WorkoutCollectionAction.exportAll,
                       ),
                       PopupMenuItem<WorkoutCollectionAction>(
-                        child: Text(l10n.deleteAllMenuItem),
+                        child: IconTextItem(icon: Icons.delete_sweep, text: l10n.deleteAllMenuItem),
                         value: WorkoutCollectionAction.deleteAll,
                       )
                     ]),
