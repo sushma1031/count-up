@@ -240,11 +240,20 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                   child: StaticExerciseList(
                     exercises: _w.exercises,
                     header: _w.exercises.length > 1
-                        ? BreakItem(
-                            seconds: _w.breakSeconds ??
-                                SettingsProvider.of(context).breakDurationSeconds,
-                            isDefault: _w.breakSeconds == null,
-                            leading: const BreakIcon(),
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              BreakItem(
+                                seconds: _w.breakSeconds ??
+                                    SettingsProvider.of(context).breakDurationSeconds,
+                                isDefault: _w.breakSeconds == null,
+                                leading: const BreakIcon(),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 24),
+                                child: Divider(height: 1),
+                              ),
+                            ],
                           )
                         : null,
                   ))),
