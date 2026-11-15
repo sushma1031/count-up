@@ -24,11 +24,6 @@ class VolumeSlider extends StatefulWidget {
 class _VolumeSliderState extends State<VolumeSlider> {
   late double _currentSliderValue;
 
-  double _roundToStep(double value) {
-    final stepCount = ((value - widget.min) / widget.step).round();
-    return widget.min + (stepCount * widget.step);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -53,9 +48,7 @@ class _VolumeSliderState extends State<VolumeSlider> {
                 _currentSliderValue = value;
               });
             },
-            onChangeEnd: (double value) {
-              widget.onChanged(_roundToStep(value).clamp(widget.min, widget.max));
-            },
+            onChangeEnd: widget.onChanged,
           ),
         ),
         SizedBox(
