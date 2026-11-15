@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class OffsetAnimatedText extends StatefulWidget {
   final String text;
-  const OffsetAnimatedText(this.text, {Key? key}) : super(key: key);
+  const OffsetAnimatedText(this.text, {super.key});
 
   @override
   State<OffsetAnimatedText> createState() => _OffsetAnimatedTextState();
@@ -36,10 +36,12 @@ class _OffsetAnimatedTextState extends State<OffsetAnimatedText>
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _offsetAnm,
-      child: Opacity(
-          opacity: _opacityAnm.value,
+      child: FadeTransition(
+          opacity: _opacityAnm,
           child: Text(widget.text,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontStyle: FontStyle.italic, fontSize: 20))),
     );
   }

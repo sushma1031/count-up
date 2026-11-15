@@ -29,20 +29,15 @@ jobs:
           echo "Got version: ${VERSION}"
           echo "VERSION=v${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Check if Tag Already Exists
-        id: check_tag
+      - name: Check If Git Tag Exists
         run: |
-          TAG_NAME="${{ steps.get_version.outputs.VERSION }}"
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "TAG_EXISTS=true" >> $GITHUB_OUTPUT
-            echo "Tag $TAG_NAME already exists. Skipping release creation."
-          else
-            echo "TAG_EXISTS=false" >> $GITHUB_OUTPUT
-            echo "New version detected: $TAG_NAME"
+          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+            echo "::error file=pubspec.yaml::Tag $TAG_NAME already exists."
+            exit 1
           fi
+          echo "New version detected: $TAG_NAME"
 
       - name: Generate Commit Changelog
-        if: steps.check_tag.outputs.TAG_EXISTS == 'false'
         id: generate_changelog
         run: |
           PREV_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) --exclude "*-*" || "HEAD")
@@ -58,7 +53,6 @@ jobs:
           echo "$DELIMITER" >> "$GITHUB_OUTPUT"
 
       - name: Create Tag and GitHub Release
-        if: steps.check_tag.outputs.TAG_EXISTS == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_version.outputs.VERSION }}

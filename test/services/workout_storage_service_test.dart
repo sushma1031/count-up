@@ -63,6 +63,21 @@ Future<void> main() async {
     expect(ex.map((e) => e.name), ['Plank', 'Crunches', 'Russian Twist']);
   });
 
+  test('updates and clears workout break duration', () async {
+    await db.clear();
+    final key = await db.addEmptyWorkout('Abs');
+    expect(db.getWorkout(key)!.breakSeconds, isNull);
+
+    await db.updateWorkout(key, exercises: [], breakSeconds: 30);
+    // Reopen so the value is read back through the adapter rather than Hive's cache.
+    await db.close();
+    await db.loadData();
+    expect(db.getWorkout(key)!.breakSeconds, 30);
+
+    await db.updateWorkout(key, exercises: [], breakSeconds: null);
+    expect(db.getWorkout(key)!.breakSeconds, isNull);
+  });
+
   test('updates workout exercises correctly', () async {
     await db.clear();
     await db.addEmptyWorkout('Abs');
@@ -72,13 +87,15 @@ Future<void> main() async {
       DurationExercise('Russian Twist', 40)
     ]);
 
-    await db.updateWorkoutExercises(
-        0, [DurationExercise('Crunches', 40), DurationExercise('Russian Twist', 40)]);
+    await db.updateWorkout(0,
+        exercises: [DurationExercise('Crunches', 40), DurationExercise('Russian Twist', 40)],
+        breakSeconds: null);
     var ex = db.getWorkoutExercises(0);
     expect(ex.length, 2);
 
-    await db.updateWorkoutExercises(
-        0, [DurationExercise('Russian Twist', 40), DurationExercise('Crunches', 40)]);
+    await db.updateWorkout(0,
+        exercises: [DurationExercise('Russian Twist', 40), DurationExercise('Crunches', 40)],
+        breakSeconds: null);
     ex = db.getWorkoutExercises(0);
     expect(ex.map((e) => e.name), ['Russian Twist', 'Crunches']);
   });
@@ -90,10 +107,12 @@ Future<void> main() async {
       DurationExercise('Plank', 60),
       DurationExercise('Crunches', 40),
     ]);
-    await db.updateWorkoutExercises(0, [
-      DurationExercise('Plank', 60),
-      RepExercise('Push-ups', 20),
-    ]);
+    await db.updateWorkout(0,
+        exercises: [
+          DurationExercise('Plank', 60),
+          RepExercise('Push-ups', 20),
+        ],
+        breakSeconds: null);
     var ex = db.getWorkoutExercises(0);
     expect(ex[0], isA<DurationExercise>());
     expect(ex[1], isA<RepExercise>());

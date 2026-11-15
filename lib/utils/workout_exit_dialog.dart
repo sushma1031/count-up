@@ -12,13 +12,12 @@ Future<bool> showExitWorkoutDialog(BuildContext context) async {
             content: Text(l10n.exitWorkoutConfirm),
             actions: <Widget>[
               TextButton(
-                  child: Text(l10n.yesBtn),
-                  onPressed: () => Navigator.of(context).pop(true)),
-              TextButton(
-                  child: Text(l10n.noBtn),
+                  child: Text(l10n.stayBtn),
                   onPressed: () => Navigator.of(context).pop(false)),
+              TextButton(
+                  child: Text(l10n.exitBtn),
+                  onPressed: () => Navigator.of(context).pop(true)),
             ],
-            elevation: 20,
           );
         },
       ) ??

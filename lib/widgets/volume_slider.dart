@@ -8,15 +8,14 @@ class VolumeSlider extends StatefulWidget {
   final void Function(double) onChanged;
 
   const VolumeSlider(
-      {Key? key,
+      {super.key,
       this.initial = 0.5,
       this.min = 0.0,
       this.max = 1.0,
       this.step = 0.1,
       required this.onChanged})
       : assert(step > 0),
-        assert(max > min),
-        super(key: key);
+        assert(max > min);
 
   @override
   State<VolumeSlider> createState() => _VolumeSliderState();
@@ -24,11 +23,6 @@ class VolumeSlider extends StatefulWidget {
 
 class _VolumeSliderState extends State<VolumeSlider> {
   late double _currentSliderValue;
-
-  double _roundToStep(double value) {
-    final stepCount = ((value - widget.min) / widget.step).round();
-    return widget.min + (stepCount * widget.step);
-  }
 
   @override
   void initState() {
@@ -48,14 +42,13 @@ class _VolumeSliderState extends State<VolumeSlider> {
             min: widget.min,
             max: widget.max,
             divisions: divisions,
+            padding: const EdgeInsetsDirectional.only(top: 14, bottom: 14, end: 10),
             onChanged: (double value) {
               setState(() {
                 _currentSliderValue = value;
               });
             },
-            onChangeEnd: (double value) {
-              widget.onChanged(_roundToStep(value).clamp(widget.min, widget.max));
-            },
+            onChangeEnd: widget.onChanged,
           ),
         ),
         SizedBox(

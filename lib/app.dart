@@ -19,13 +19,32 @@ class CountUpApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme _colorScheme = ColorScheme.dark().copyWith(
-        primary: Colors.indigo.shade200,
-        primaryContainer: Colors.indigo.shade700,
-        secondary: Colors.deepPurple.shade200,
-        secondaryContainer: Colors.deepPurple.shade200,
-        error: AppColors.error,
-        onPrimaryContainer: Colors.white);
+    final background = const ColorScheme.dark().surface;
+    final neutral = ColorScheme.fromSeed(
+        seedColor: Colors.indigo,
+        brightness: Brightness.dark,
+        dynamicSchemeVariant: DynamicSchemeVariant.monochrome);
+    final colorScheme =
+        ColorScheme.fromSeed(seedColor: Colors.indigo, brightness: Brightness.dark).copyWith(
+      primary: Colors.indigo.shade200,
+      primaryContainer: Colors.indigo.shade700,
+      onPrimaryContainer: Colors.white,
+      secondary: Colors.deepPurple.shade200,
+      surface: background,
+      surfaceContainerLowest: background,
+      surfaceDim: neutral.surfaceDim,
+      surfaceBright: neutral.surfaceBright,
+      surfaceContainerLow: neutral.surfaceContainerLow,
+      surfaceContainer: neutral.surfaceContainer,
+      surfaceContainerHigh: neutral.surfaceContainerHigh,
+      surfaceContainerHighest: neutral.surfaceContainerHighest,
+      onSurface: neutral.onSurface,
+      onSurfaceVariant: neutral.onSurfaceVariant,
+      outline: neutral.outline,
+      outlineVariant: neutral.outlineVariant,
+      inverseSurface: neutral.inverseSurface,
+      onInverseSurface: neutral.onInverseSurface,
+    );
     return SettingsProvider(
       settings: settings,
       child: MaterialApp(
@@ -33,17 +52,21 @@ class CountUpApp extends StatelessWidget {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           theme: ThemeData(
-              useMaterial3: false,
-              brightness: Brightness.dark,
-              primarySwatch: Colors.indigo,
-              colorScheme: _colorScheme,
-              applyElevationOverlayColor: true,
-              snackBarTheme: SnackBarThemeData(
-                  behavior: SnackBarBehavior.floating,
-                  insetPadding: const EdgeInsets.all(16),
-                  backgroundColor: darken(_colorScheme.onSurface, 0.2),
-                  actionTextColor: _colorScheme.primaryContainer,
-                  elevation: 16)),
+                  colorScheme: colorScheme,
+                  appBarTheme: const AppBarTheme(
+                      backgroundColor: Colors.transparent, scrolledUnderElevation: 0),
+                  snackBarTheme: const SnackBarThemeData(
+                      behavior: SnackBarBehavior.floating, insetPadding: EdgeInsets.all(16)),
+                  floatingActionButtonTheme: FloatingActionButtonThemeData(
+                      backgroundColor: colorScheme.secondary,
+                      foregroundColor: colorScheme.onSecondary))
+              .copyWith(
+            sliderTheme: SliderThemeData(
+              // ignore: deprecated_member_use
+              year2023: false,
+              trackHeight: 12.0,
+            ),
+          ),
           home: LifecycleWatcher(
             child: HomePage(db: db),
           )),
@@ -53,7 +76,7 @@ class CountUpApp extends StatelessWidget {
 
 class HomePage extends StatefulWidget {
   final StorageService db;
-  const HomePage({Key? key, required this.db}) : super(key: key);
+  const HomePage({super.key, required this.db});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -62,10 +85,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool _hasShownSettingsPersistenceWarning = false;
 
-  Future<void> loadDataWithDelay() async {
-    await widget.db.loadData();
-    await Future.delayed(Duration(seconds: 2));
-  }
 
   void _showSettingsPersistenceWarning(BuildContext context) {
     final settings = SettingsProvider.of(context);
@@ -102,7 +121,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<void>(
-      future: loadDataWithDelay(),
+      future: widget.db.loadData(),
       builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
         final l10n = AppLocalizations.of(context);
         if (snapshot.connectionState != ConnectionState.done) {
@@ -146,7 +165,7 @@ class _HomePageState extends State<HomePage> {
                       child: Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.redAccent,
+                        color: Theme.of(context).colorScheme.error,
                       )),
                   Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
                   Padding(
@@ -160,8 +179,8 @@ class _HomePageState extends State<HomePage> {
                       )),
                   Padding(
                     padding: EdgeInsetsGeometry.symmetric(vertical: 16),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 0)),
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 0)),
                       onPressed: () {
                         setState(() {});
                       },

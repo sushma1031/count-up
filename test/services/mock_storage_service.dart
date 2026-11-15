@@ -111,12 +111,13 @@ class MockStorageService implements StorageService<List<Workout>> {
     return Future.value(w);
   }
 
-  Future<Workout?> updateWorkoutExercises(
-      int key, List<Exercise> newExercises) async {
+  Future<Workout?> updateWorkout(int key,
+      {required List<Exercise> exercises, required int? breakSeconds}) async {
     final w = workoutsMap[key];
     if (w == null) return null;
     writes++;
-    w.exercises = newExercises;
+    w.exercises = exercises;
+    w.breakSeconds = breakSeconds;
     _notify();
     return Future.value(w);
   }

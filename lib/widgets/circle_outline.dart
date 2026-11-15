@@ -6,8 +6,7 @@ class CircleOutline extends StatelessWidget {
   final Color? color;
 
   const CircleOutline(
-      {Key? key, required this.size, required this.strokeWidth, this.color})
-      : super(key: key);
+      {super.key, required this.size, required this.strokeWidth, this.color});
 
   @override
   Widget build(BuildContext context) {

@@ -7,11 +7,10 @@ class ScaleTextSequence extends StatefulWidget {
   final Duration duration;
   final VoidCallback? onFinished;
   const ScaleTextSequence(this.texts,
-      {Key? key,
+      {super.key,
       this.duration = const Duration(milliseconds: 1000),
       this.onFinished,
-      this.textStyle})
-      : super(key: key);
+      this.textStyle});
 
   @override
   State<ScaleTextSequence> createState() => _ScaleTextSequenceState();
@@ -28,12 +27,11 @@ class _ScaleTextSequenceState extends State<ScaleTextSequence> {
   }
 
   void goNext() {
-    setState(() {
-      if (_currentIndex == _lastIndex)
-        widget.onFinished?.call();
-      else
-        _currentIndex++;
-    });
+    if (_currentIndex == _lastIndex) {
+      widget.onFinished?.call();
+      return;
+    }
+    setState(() => _currentIndex++);
   }
 
   @override

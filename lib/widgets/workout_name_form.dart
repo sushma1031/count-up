@@ -8,13 +8,13 @@ class WorkoutNameForm extends StatefulWidget {
   final List<String> existingNames;
   final Future<Object?> Function(String) onSubmit;
   const WorkoutNameForm({
-    Key? key,
+    super.key,
     required this.initial,
     required this.label,
     required this.submitLabel,
     required this.existingNames,
     required this.onSubmit,
-  }) : super(key: key);
+  });
   @override
   State<WorkoutNameForm> createState() => _WorkoutNameFormState();
 }
@@ -22,7 +22,7 @@ class WorkoutNameForm extends StatefulWidget {
 class _WorkoutNameFormState extends State<WorkoutNameForm> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _controller = TextEditingController(text: widget.initial)
-  ..selection = TextSelection(baseOffset: 0, extentOffset: widget.initial.length);
+    ..selection = TextSelection(baseOffset: 0, extentOffset: widget.initial.length);
 
   @override
   void dispose() {
@@ -67,7 +67,7 @@ class _WorkoutNameFormState extends State<WorkoutNameForm> {
                       labelText: widget.label,
                     ),
                   )),
-                  ElevatedButton(
+                  FilledButton(
                     onPressed: _submit,
                     child: Text(widget.submitLabel),
                   )

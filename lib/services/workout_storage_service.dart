@@ -33,11 +33,7 @@ class WorkoutStorageService implements StorageService<Box<Workout>> {
   }
 
   List<MapEntry<int, Workout>> getWorkoutEntries() {
-    return workouts
-        .toMap()
-        .entries
-        .map((e) => MapEntry(e.key as int, e.value))
-        .toList();
+    return workouts.toMap().entries.map((e) => MapEntry(e.key as int, e.value)).toList();
   }
 
   List<String> getAllWorkoutNames() {
@@ -109,13 +105,15 @@ class WorkoutStorageService implements StorageService<Box<Workout>> {
     return w;
   }
 
-  Future<Workout?> updateWorkoutExercises(int key, List<Exercise> newExercises) async {
+  Future<Workout?> updateWorkout(int key,
+      {required List<Exercise> exercises, required int? breakSeconds}) async {
     Workout? w = getWorkout(key);
     if (w == null) {
       debugPrint('Error: Workout with key $key not found.\n');
       return null;
     }
-    w.exercises = newExercises;
+    w.exercises = exercises;
+    w.breakSeconds = breakSeconds;
     await w.save();
     return w;
   }

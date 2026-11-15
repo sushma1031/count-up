@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:count_up/utils/assets.dart';
 import 'package:count_up/screens/exercises_screen.dart';
 import 'package:count_up/models/workout_display.dart';
+import 'package:count_up/models/import_result.dart';
 import 'package:count_up/widgets/workout_card.dart';
 import 'package:count_up/widgets/settings_dialog.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/utils/error_formatters.dart';
+import 'package:count_up/widgets/icon_text_item.dart';
 import '../widgets/workout_name_form.dart';
 import '../services/storage_service.dart';
 import '../services/workout_backup_service.dart';
@@ -17,7 +19,7 @@ enum WorkoutCollectionAction { deleteAll, importWorkout, exportAll }
 class WorkoutsScreen extends StatelessWidget {
   final StorageService db;
 
-  WorkoutsScreen({Key? key, required this.db}) : super(key: key);
+  WorkoutsScreen({super.key, required this.db});
 
   WorkoutBackupService get _backup => WorkoutBackupService(db);
 
@@ -44,9 +46,11 @@ class WorkoutsScreen extends StatelessWidget {
   Future<void> _confirmAndDeleteAllWorkouts(BuildContext context) async {
     final len = db.size;
     if (len == 0) return;
+    final l10n = AppLocalizations.of(context);
     final confirmed = await DangerConfirmDialog.show(
       context,
-      message: AppLocalizations.of(context).confirmDeleteWorkouts(len),
+      message: l10n.confirmDeleteWorkouts(len),
+      confirmLabel: l10n.deleteAllBtn,
     );
     if (confirmed) await db.clear();
   }
@@ -63,8 +67,6 @@ class WorkoutsScreen extends StatelessWidget {
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
           title: Text(
             l10n.workoutsScreenTitle,
             style: TextStyle(fontFamily: Assets.fontEthosNova, fontWeight: FontWeight.bold),
@@ -86,11 +88,16 @@ class WorkoutsScreen extends StatelessWidget {
                 onSelected: (value) async {
                   switch (value) {
                     case WorkoutCollectionAction.importWorkout:
-                      final result = await _backup.importWorkout();
-                      if (result.error != null) {
-                        _showErrorSnackbar(context, importErrorMessage(context, result));
-                      } else if (result.workoutKey != null) {
-                        _goToWorkout(context, result.workoutKey!);
+                      switch (await _backup.importWorkout()) {
+                        case ImportSuccess(:final workoutKey):
+                          _goToWorkout(context, workoutKey);
+                        case ImportFailure(:final error):
+                          _showErrorSnackbar(context, importErrorMessage(context, error));
+                        case ImportUnknownExerciseType(:final type):
+                          _showErrorSnackbar(context,
+                              AppLocalizations.of(context).importErrorUnknownExerciseType(type));
+                        case ImportCancelled():
+                          break;
                       }
                       break;
                     case WorkoutCollectionAction.deleteAll:
@@ -106,22 +113,21 @@ class WorkoutsScreen extends StatelessWidget {
                 },
                 itemBuilder: (context) => <PopupMenuEntry<WorkoutCollectionAction>>[
                       PopupMenuItem<WorkoutCollectionAction>(
-                        child: Text(l10n.importWorkoutMenuItem),
+                        child: IconTextItem(icon: Icons.upload, text: l10n.importWorkoutMenuItem),
                         value: WorkoutCollectionAction.importWorkout,
                       ),
                       PopupMenuItem<WorkoutCollectionAction>(
-                        child: Text(l10n.exportAllMenuItem),
+                        child: IconTextItem(icon: Icons.download, text: l10n.exportAllMenuItem),
                         value: WorkoutCollectionAction.exportAll,
                       ),
                       PopupMenuItem<WorkoutCollectionAction>(
-                        child: Text(l10n.deleteAllMenuItem),
+                        child: IconTextItem(icon: Icons.delete_sweep, text: l10n.deleteAllMenuItem),
                         value: WorkoutCollectionAction.deleteAll,
                       )
                     ]),
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          shape: StadiumBorder(),
           child: Icon(Icons.add),
           onPressed: () async {
             var workoutKey = await showDialog(
@@ -135,7 +141,6 @@ class WorkoutsScreen extends StatelessWidget {
                     onSubmit: db.addEmptyWorkout,
                     existingNames: db.getAllWorkoutNames(),
                   ),
-                  elevation: 24,
                 );
               },
             );

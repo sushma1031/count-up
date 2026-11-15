@@ -6,43 +6,28 @@ import 'package:count_up/utils/workout_constants.dart';
 
 String errorMessageFor(BuildContext context, AppError error) {
   final l10n = AppLocalizations.of(context);
-  switch (error) {
-    case AppError.dbInitFailed:
-      return l10n.dbInitFailedError;
-    case AppError.unknown:
-      return l10n.unknownError;
-  }
+  return switch (error) {
+    AppError.dbInitFailed => l10n.dbInitFailedError,
+    AppError.unknown => l10n.unknownError,
+  };
 }
 
-/// Returns a localized error message corresponding to the failure in [result].
-///
-/// Requires [ImportResult.error] to be non-null.
-String importErrorMessage(BuildContext context, ImportResult result) {
+String importErrorMessage(BuildContext context, ImportError error) {
   final l10n = AppLocalizations.of(context);
-  switch (result.error!) {
-    case ImportError.format:
-      return l10n.importErrorFormat;
-    case ImportError.type:
-      return l10n.importErrorType;
-    case ImportError.unknownExerciseType:
-      return l10n.importErrorUnknownExerciseType(result.unknownExerciseType!);
-    case ImportError.exerciseLimit:
-      return l10n.workoutExerciseLimitError(maxExercisesPerWorkout);
-    case ImportError.unknown:
-      return l10n.importErrorUnknown;
-  }
+  return switch (error) {
+    ImportError.format => l10n.importErrorFormat,
+    ImportError.type => l10n.importErrorType,
+    ImportError.exerciseLimit => l10n.workoutExerciseLimitError(maxExercisesPerWorkout),
+    ImportError.unknown => l10n.importErrorUnknown,
+  };
 }
 
 String exportErrorMessage(BuildContext context, ExportError error) {
   final l10n = AppLocalizations.of(context);
-  switch (error) {
-    case ExportError.empty:
-      return l10n.exportErrorEmpty;
-    case ExportError.fs:
-      return l10n.exportErrorFS;
-    case ExportError.platform:
-      return l10n.exportErrorPlatform;
-    case ExportError.unknown:
-      return l10n.exportErrorUnknown;
-  }
+  return switch (error) {
+    ExportError.empty => l10n.exportErrorEmpty,
+    ExportError.fs => l10n.exportErrorFS,
+    ExportError.platform => l10n.exportErrorPlatform,
+    ExportError.unknown => l10n.exportErrorUnknown,
+  };
 }

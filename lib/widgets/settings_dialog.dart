@@ -7,19 +7,23 @@ import 'package:flutter/material.dart';
 class SettingsDialog extends StatefulWidget {
   final SettingsService settings;
 
-  const SettingsDialog({Key? key, required this.settings}) : super(key: key);
+  const SettingsDialog({super.key, required this.settings});
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();
 }
 
 class _SettingsDialogState extends State<SettingsDialog> {
+  static const _settingsDivider = Divider(height: 24);
+
   late int _preWorkoutCountdownSeconds;
+  late int _breakDurationSeconds;
 
   @override
   void initState() {
     super.initState();
     _preWorkoutCountdownSeconds = widget.settings.preWorkoutCountdownSeconds;
+    _breakDurationSeconds = widget.settings.breakDurationSeconds;
   }
 
   @override
@@ -38,10 +42,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
           ),
           const SizedBox(height: 20),
           VolumeSettings(
-            initial: widget.settings.timerVolume,
-            onChanged: widget.settings.setTimerVolume,
+            initial: widget.settings.soundVolume,
+            onChanged: widget.settings.setSoundVolume,
           ),
-          const Divider(height: 32),
+          _settingsDivider,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -60,6 +64,30 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     _preWorkoutCountdownSeconds = value;
                   });
                   widget.settings.setPreWorkoutCountdownSeconds(value);
+                },
+              ),
+            ],
+          ),
+          _settingsDivider,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.breakBetweenExercisesLabel,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              Counter(
+                value: _breakDurationSeconds,
+                min: SettingsService.minBreakDurationSeconds,
+                max: SettingsService.maxBreakDurationSeconds,
+                step: SettingsService.breakDurationStepSeconds,
+                onChanged: (value) {
+                  setState(() {
+                    _breakDurationSeconds = value;
+                  });
+                  widget.settings.setBreakDurationSeconds(value);
                 },
               ),
             ],

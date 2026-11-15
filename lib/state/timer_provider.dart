@@ -15,8 +15,9 @@ class TimerProvider extends StatefulWidget {
   final ValueChanged<void> nextExercise;
   final ValueChanged<void> previousExercise;
   final AudioService player;
+  final bool isBreak;
   const TimerProvider(
-      {Key? key,
+      {super.key,
       required this.name,
       required this.duration,
       required this.currentIndex,
@@ -25,20 +26,23 @@ class TimerProvider extends StatefulWidget {
       required this.previousExercise,
       required this.player,
       required this.workoutProgress,
-      this.nextName})
-      : super(key: key);
+      this.nextName,
+      this.isBreak = false});
   @override
   State<TimerProvider> createState() => _TimerProviderState();
 }
 
-class _TimerProviderState extends State<TimerProvider>
-    with SingleTickerProviderStateMixin {
+class _TimerProviderState extends State<TimerProvider> with SingleTickerProviderStateMixin {
   final String audioPath = Assets.audioExerciseChange;
   late Timer _timer;
   late Duration _timeLeft;
   late AnimationController _controller;
   bool _isPaused = false;
   var oneSec = Duration(seconds: 1);
+  static const _restartThresholdSeconds = 3;
+
+  bool get _restartsOnPrevious =>
+      !widget.isBreak && widget.duration.inSeconds - _timeLeft.inSeconds > _restartThresholdSeconds;
   @override
   void initState() {
     super.initState();
@@ -46,9 +50,7 @@ class _TimerProviderState extends State<TimerProvider>
     _controller = AnimationController(
       vsync: this,
       duration: widget.duration + oneSec,
-    )..addListener(() {
-        setState(() {});
-      });
+    );
     startTimer();
   }
 
@@ -62,7 +64,6 @@ class _TimerProviderState extends State<TimerProvider>
         }
         if (_timeLeft.inSeconds <= -1) {
           timer.cancel();
-          widget.player.status = AudioStatus.stopped;
           widget.nextExercise(null);
         }
       });
@@ -100,7 +101,7 @@ class _TimerProviderState extends State<TimerProvider>
   Future<void> goPrevious() async {
     await widget.player.stop();
 
-    if (widget.duration.inSeconds - _timeLeft.inSeconds > 2) {
+    if (_restartsOnPrevious) {
       restartTimer();
     } else {
       _timer.cancel();
@@ -140,11 +141,11 @@ class _TimerProviderState extends State<TimerProvider>
   @override
   void didUpdateWidget(old) {
     super.didUpdateWidget(old);
+    _timer.cancel(); // rebuild should not leave two periodic timers running
+
     _timeLeft = widget.duration;
     _controller.duration = widget.duration;
     _controller.reset();
-
-    // perform any other operations here, like setting a short break, etc.
 
     startTimer();
   }
@@ -182,9 +183,9 @@ class _TimerProviderState extends State<TimerProvider>
         child: TimerWidget(
           name: widget.name,
           nextName: widget.nextName,
-          nextBtnFunction:
-              widget.currentIndex == widget.noOfExercises ? null : goNext,
-          pauseResume: _isPaused ? Icons.play_arrow : Icons.pause,
+          nextBtnFunction: widget.currentIndex == widget.noOfExercises ? null : goNext,
+          isPaused: _isPaused,
+          restartsOnPrevious: _restartsOnPrevious,
           togglePauseResume: togglePauseResume,
           timeLeft: _timeLeft,
           workoutProgress: widget.workoutProgress,

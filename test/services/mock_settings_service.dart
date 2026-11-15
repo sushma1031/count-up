@@ -1,28 +1,34 @@
 import 'package:count_up/services/settings_service.dart';
 
 class MockSettingsService implements SettingsService {
-  double _timerVolume;
+  double _soundVolume;
   int _preWorkoutCountdownSeconds;
+  int _breakDurationSeconds;
 
   @override
   final bool isPersistenceAvailable;
 
   MockSettingsService({
-    double timerVolume = 0.5,
+    double soundVolume = 0.5,
     this.isPersistenceAvailable = true,
     int preWorkoutCountdownSeconds = SettingsService.defaultPreWorkoutCountdownSeconds,
-  })  : _timerVolume = timerVolume,
-        _preWorkoutCountdownSeconds = preWorkoutCountdownSeconds;
+    int breakDurationSeconds = SettingsService.defaultBreakDurationSeconds,
+  })  : _soundVolume = soundVolume,
+        _preWorkoutCountdownSeconds = preWorkoutCountdownSeconds,
+        _breakDurationSeconds = breakDurationSeconds;
 
   @override
-  double get timerVolume => _timerVolume;
+  double get soundVolume => _soundVolume;
 
   @override
   int get preWorkoutCountdownSeconds => _preWorkoutCountdownSeconds;
 
   @override
-  Future<void> setTimerVolume(double value) async {
-    _timerVolume = value.clamp(0.0, 1.0);
+  int get breakDurationSeconds => _breakDurationSeconds;
+
+  @override
+  Future<void> setSoundVolume(double value) async {
+    _soundVolume = value.clamp(0.0, 1.0);
   }
 
   @override
@@ -30,6 +36,14 @@ class MockSettingsService implements SettingsService {
     _preWorkoutCountdownSeconds = value.clamp(
       SettingsService.minPreWorkoutCountdownSeconds,
       SettingsService.maxPreWorkoutCountdownSeconds,
+    );
+  }
+
+  @override
+  Future<void> setBreakDurationSeconds(int value) async {
+    _breakDurationSeconds = value.clamp(
+      SettingsService.minBreakDurationSeconds,
+      SettingsService.maxBreakDurationSeconds,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:count_up/screens/workouts_screen.dart';
 import 'package:count_up/state/settings_provider.dart';
 import 'package:count_up/widgets/volume_slider.dart';
 import 'package:count_up/widgets/counter.dart';
+import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/widgets/settings_dialog.dart';
 import 'package:count_up/widgets/workout_card.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
@@ -56,7 +57,7 @@ void main() {
     await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'Biceps');
-    await tester.tap(find.byType(ElevatedButton));
+    await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
     expect(mockDB.getAllWorkoutNames(), contains('Biceps'));
@@ -70,7 +71,7 @@ void main() {
     await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'Abs');
-    await tester.tap(find.byType(ElevatedButton));
+    await tester.tap(find.byType(FilledButton));
     await tester.pump();
 
     expect(find.text('Name already in use'), findsOneWidget);
@@ -82,13 +83,14 @@ void main() {
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete All'));
-    await tester.pump();
-    await tester.tap(find.text('Yes'));
-    await tester.pump();
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(
+        of: find.byType(DangerConfirmDialog), matching: find.text('Delete All')));
+    await tester.pumpAndSettle();
     expect(find.byType(WorkoutCard), findsNothing);
   });
 
-  testWidgets('updates timer volume from settings', (tester) async {
+  testWidgets('updates sound volume from settings', (tester) async {
     await tester.pumpWidget(screen);
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pumpAndSettle();
@@ -97,7 +99,7 @@ void main() {
 
     await tester.drag(find.byType(Slider).first, const Offset(500, 0));
     await tester.pumpAndSettle();
-    expect(mockSettings.timerVolume, 1.0);
+    expect(mockSettings.soundVolume, 1.0);
   });
 
   testWidgets('updates pre-workout countdown from settings', (tester) async {
@@ -107,13 +109,28 @@ void main() {
 
     expect(find.byType(SettingsDialog), findsOneWidget);
     expect(find.text('Pre-workout countdown'), findsOneWidget);
-    expect(find.byType(Counter), findsOneWidget);
+    expect(find.byType(Counter), findsNWidgets(2));
     expect(find.text('5s'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.add_circle_outline));
+    await tester.tap(find.byIcon(Icons.add_circle_outline).first);
     await tester.pump();
 
     expect(mockSettings.preWorkoutCountdownSeconds, 6);
     expect(find.text('6s'), findsOneWidget);
+  });
+
+  testWidgets('updates break duration from settings in steps of 5', (tester) async {
+    await tester.pumpWidget(screen);
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Break between exercises'), findsOneWidget);
+    expect(find.text('0s'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.add_circle_outline).last);
+    await tester.pump();
+
+    expect(mockSettings.breakDurationSeconds, 5);
+    expect(find.text('5s'), findsNWidgets(2));
   });
 }

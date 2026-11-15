@@ -12,11 +12,11 @@ class VolumeSettings extends StatefulWidget {
   final void Function(double) onChanged;
 
   const VolumeSettings({
-    Key? key,
+    super.key,
     required this.initial,
     required this.onChanged,
-    this.min = 0.2,
-  }) : super(key: key);
+    this.min = 0.0,
+  });
 
   @override
   State<VolumeSettings> createState() => _VolumeSettingsState();
@@ -36,9 +36,6 @@ class _VolumeSettingsState extends State<VolumeSettings> {
 
   Future<void> _previewVolume() async {
     if (mounted) setState(() => _isPreviewing = true);
-    setState(() {
-      _isPreviewing = true;
-    });
 
     try {
       if (!_configured) {
@@ -72,10 +69,9 @@ class _VolumeSettingsState extends State<VolumeSettings> {
     final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.timerScreenTitle, style: TextStyle(fontSize: 16)),
+        Text(l10n.soundSettingLabel, style: TextStyle(fontSize: 16)),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -93,8 +89,8 @@ class _VolumeSettingsState extends State<VolumeSettings> {
               ),
             ),
             IconButton(
-              onPressed: _isPreviewing ? null : _previewVolume,
-              icon: Icon(Icons.volume_down),
+              onPressed: _isPreviewing || _volume <= 0 ? null : _previewVolume,
+              icon: Icon(_volume <= 0 ? Icons.volume_off : Icons.volume_down),
               iconSize: 20,
               visualDensity: VisualDensity.compact,
             ),

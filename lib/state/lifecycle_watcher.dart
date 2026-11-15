@@ -4,7 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 class LifecycleWatcher extends StatefulWidget {
   final Widget child;
-  const LifecycleWatcher({Key? key, required this.child}) : super(key: key);
+  const LifecycleWatcher({super.key, required this.child});
 
   @override
   State<LifecycleWatcher> createState() => _LifecycleWatcherState();

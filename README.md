@@ -1,6 +1,6 @@
 # Count Up
 
-A minimalist exercise timer app built with Flutter that helps track workout routines. Currently built and tested only for Android.
+A minimalist workout routine tracker app that supports timed and rep exercises. Currently built and tested only for Android.
 
 ## Snapshots
 ![screenshots of the home screen, a workout, and a timer in progress](public/screenshots.png)
@@ -12,11 +12,10 @@ A minimalist exercise timer app built with Flutter that helps track workout rout
 - Workouts are saved to local storage using Hive.
 - Export/import workouts as JSON files
 
-**Timer**
-- Circular progress indicator shows remaining time
-- Sound alerts at 3 seconds remaining
+**Workout Player**
+- Timed exercises show a circular progress indicator with the remaining time and play a sound alert at 3 seconds remaining
+- Rep exercises show the rep count and complete when you tap Done icon
 - Pause, resume, skip forward/backward through exercises
-- Screen stays on throughout the workout
 
 ## Getting Started
 ### Installation
@@ -24,7 +23,7 @@ A minimalist exercise timer app built with Flutter that helps track workout rout
 1. **Clone the repository**
    ```bash
    git clone https://github.com/sushma1031/count-up.git
-   cd flutter-exercise-timer
+   cd count-up
    ```
 
 2. **Install dependencies**

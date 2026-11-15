@@ -5,12 +5,14 @@ import 'settings_service.dart';
 class HiveSettingsService implements SettingsService {
   static const String _boxName = 'settings';
 
-  static const String _timerVolume = 'timerVolume';
+  static const String _soundVolumeKey = 'timerVolume';
   static const String _preWorkoutCountdownSeconds = 'preWorkoutCountdownSeconds';
+  static const String _breakDurationSecondsKey = 'breakDurationSeconds';
 
   Box? _settingsBox;
-  double _fallbackTimerVolume = 0.5;
+  double _fallbackSoundVolume = 0.5;
   int _fallbackPreWorkoutCountdownSeconds = SettingsService.defaultPreWorkoutCountdownSeconds;
+  int _fallbackBreakDurationSeconds = SettingsService.defaultBreakDurationSeconds;
 
   Future<void> init() async {
     try {
@@ -28,12 +30,12 @@ class HiveSettingsService implements SettingsService {
   bool get isPersistenceAvailable => _settingsBox != null;
 
   @override
-  double get timerVolume {
+  double get soundVolume {
     final settingsBox = _settingsBox;
-    if (settingsBox == null) return _fallbackTimerVolume;
+    if (settingsBox == null) return _fallbackSoundVolume;
     return (settingsBox.get(
-      _timerVolume,
-      defaultValue: _fallbackTimerVolume,
+      _soundVolumeKey,
+      defaultValue: _fallbackSoundVolume,
     ) as num)
         .toDouble();
   }
@@ -49,9 +51,18 @@ class HiveSettingsService implements SettingsService {
   }
 
   @override
-  Future<void> setTimerVolume(double value) async {
-    _fallbackTimerVolume = value.clamp(0.2, 1.0);
-    await _settingsBox?.put(_timerVolume, _fallbackTimerVolume);
+  int get breakDurationSeconds {
+    if (_settingsBox == null) return _fallbackBreakDurationSeconds;
+    return _settingsBox!.get(
+      _breakDurationSecondsKey,
+      defaultValue: _fallbackBreakDurationSeconds,
+    ) as int;
+  }
+
+  @override
+  Future<void> setSoundVolume(double value) async {
+    _fallbackSoundVolume = value.clamp(0.0, 1.0);
+    await _settingsBox?.put(_soundVolumeKey, _fallbackSoundVolume);
   }
 
   @override
@@ -63,6 +74,18 @@ class HiveSettingsService implements SettingsService {
     await _settingsBox?.put(
       _preWorkoutCountdownSeconds,
       _fallbackPreWorkoutCountdownSeconds,
+    );
+  }
+
+  @override
+  Future<void> setBreakDurationSeconds(int value) async {
+    _fallbackBreakDurationSeconds = value.clamp(
+      SettingsService.minBreakDurationSeconds,
+      SettingsService.maxBreakDurationSeconds,
+    );
+    await _settingsBox?.put(
+      _breakDurationSecondsKey,
+      _fallbackBreakDurationSeconds,
     );
   }
 }

@@ -8,6 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'mock_storage_service.dart';
 
+Matcher _failure(ImportError error) =>
+    isA<ImportFailure>().having((f) => f.error, 'error', error);
+
 void main() {
   late MockStorageService db;
 
@@ -38,15 +41,14 @@ void main() {
           await WorkoutBackupService(db).importWorkoutJson(workoutJson);
 
       if (count > maxExercisesPerWorkout) {
-        expect(result.error, ImportError.exerciseLimit);
-        expect(result.workoutKey, isNull);
+        expect(result, _failure(ImportError.exerciseLimit));
         expect(db.writes, 0);
         expect(db.size, 1);
       } else {
-        expect(result.error, isNull);
+        expect(result, isA<ImportSuccess>());
         expect(db.writes, 1);
         expect(db.size, 2);
-        final imported = db.getWorkout(result.workoutKey!)!;
+        final imported = db.getWorkout((result as ImportSuccess).workoutKey)!;
         expect(imported.name, 'Workout (1)');
         expect(imported.exercises, hasLength(count));
       }
@@ -59,7 +61,7 @@ void main() {
       () async {
     final result = await WorkoutBackupService(db).importWorkoutJson('{');
 
-    expect(result.error, ImportError.format);
+    expect(result, _failure(ImportError.format));
     expect(db.writes, 0);
     expect(db.size, 1);
   });
@@ -70,7 +72,7 @@ void main() {
       jsonEncode({'name': 10, 'exercises': 'not list'}),
     );
 
-    expect(result.error, ImportError.type);
+    expect(result, _failure(ImportError.type));
     expect(db.writes, 0);
     expect(db.size, 1);
   });
@@ -88,8 +90,10 @@ void main() {
 
     final result = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
 
-    expect(result.error, ImportError.unknownExerciseType);
-    expect(result.unknownExerciseType, 'burpee');
+    expect(
+      result,
+      isA<ImportUnknownExerciseType>().having((r) => r.type, 'type', 'burpee'),
+    );
     expect(db.writes, 0);
     expect(db.size, 1);
   });
@@ -107,7 +111,7 @@ void main() {
 
     final result = await WorkoutBackupService(db).importWorkoutJson(workoutJson);
 
-    expect(result.error, ImportError.type);
+    expect(result, _failure(ImportError.type));
     expect(db.writes, 0);
     expect(db.size, 1);
   });

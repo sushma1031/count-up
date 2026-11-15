@@ -3,13 +3,15 @@ import 'package:count_up/gen/l10n/app_localizations.dart';
 
 class DangerConfirmDialog extends StatelessWidget {
   final String message;
+  final String confirmLabel;
 
-  const DangerConfirmDialog({Key? key, required this.message}) : super(key: key);
+  const DangerConfirmDialog({super.key, required this.message, required this.confirmLabel});
 
-  static Future<bool> show(BuildContext context, {required String message}) async {
+  static Future<bool> show(BuildContext context,
+      {required String message, required String confirmLabel}) async {
     return await showDialog<bool>(
           context: context,
-          builder: (context) => DangerConfirmDialog(message: message),
+          builder: (context) => DangerConfirmDialog(message: message, confirmLabel: confirmLabel),
         ) ??
         false;
   }
@@ -26,18 +28,17 @@ class DangerConfirmDialog extends StatelessWidget {
       actions: <Widget>[
         TextButton(
             child: Text(
-              l10n.yesBtn,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            onPressed: () => Navigator.pop(context, true)),
-        TextButton(
-            child: Text(
-              l10n.noBtn,
+              l10n.cancelBtn,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             onPressed: () => Navigator.pop(context, false)),
+        TextButton(
+            child: Text(
+              confirmLabel,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            onPressed: () => Navigator.pop(context, true)),
       ],
-      elevation: 24,
     );
   }
 }

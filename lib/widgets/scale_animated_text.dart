@@ -6,8 +6,7 @@ class ScaleAnimatedText extends StatefulWidget {
   final Duration duration;
   final VoidCallback? goNext;
   const ScaleAnimatedText(this.text,
-      {Key? key, required this.duration, this.goNext, this.textStyle})
-      : super(key: key);
+      {super.key, required this.duration, this.goNext, this.textStyle});
 
   @override
   State<ScaleAnimatedText> createState() => _ScaleAnimatedTextState();

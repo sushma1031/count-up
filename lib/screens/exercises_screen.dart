@@ -1,5 +1,4 @@
 import 'package:count_up/models/workout.dart';
-import 'package:count_up/screens/countdown_screen.dart';
 import 'package:count_up/screens/edit_exercises_screen.dart';
 import 'package:count_up/screens/timer_screen.dart';
 import 'package:count_up/services/storage_service.dart';
@@ -7,6 +6,7 @@ import 'package:count_up/services/timer_audio_service.dart';
 import 'package:count_up/services/workout_backup_service.dart';
 import 'package:count_up/state/settings_provider.dart';
 import 'package:count_up/utils/error_formatters.dart';
+import 'package:count_up/widgets/break_item.dart';
 import 'package:count_up/widgets/danger_confirm_dialog.dart';
 import 'package:count_up/widgets/icon_text_item.dart';
 import 'package:count_up/widgets/workout_name_form.dart';
@@ -15,14 +15,14 @@ import 'package:count_up/utils/assets.dart';
 import '../widgets/static_exercises_list.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
-enum WorkoutAction { editExercise, deleteWorkout, exportWorkout }
+enum WorkoutAction { deleteWorkout, exportWorkout }
 
 const int _kWorkoutNameMaxLines = 2;
 
 class ExercisesScreen extends StatefulWidget {
   final int workoutKey;
   final StorageService db;
-  const ExercisesScreen({Key? key, required this.db, required this.workoutKey}) : super(key: key);
+  const ExercisesScreen({super.key, required this.db, required this.workoutKey});
 
   @override
   State<ExercisesScreen> createState() => _ExercisesScreenState();
@@ -46,9 +46,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ),
               actions: <Widget>[
                 TextButton(
-                    child: Text(l10n.yesBtn), onPressed: () => Navigator.of(context).pop(true)),
+                    child: Text(l10n.cancelBtn), onPressed: () => Navigator.of(context).pop(false)),
                 TextButton(
-                    child: Text(l10n.noBtn), onPressed: () => Navigator.of(context).pop(false)),
+                    child: Text(l10n.discardBtn), onPressed: () => Navigator.of(context).pop(true)),
               ],
             );
           },
@@ -57,9 +57,11 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   }
 
   Future<bool> _confirmAndDeleteWorkout(int workoutKey) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await DangerConfirmDialog.show(
       context,
-      message: AppLocalizations.of(context).confirmDeleteWorkout(_w.name, _w.exercises.length),
+      message: l10n.confirmDeleteWorkout(_w.name, _w.exercises.length),
+      confirmLabel: l10n.deleteBtn,
     );
     if (confirmed) await widget.db.deleteWorkout(workoutKey);
     return confirmed;
@@ -93,10 +95,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     await Navigator.push(
         context,
         MaterialPageRoute<void>(
-            fullscreenDialog: true,
             builder: (_) => EditExercisesScreen(
                 exercises: _w.exercises,
-                updateWorkoutExercises: widget.db.updateWorkoutExercises,
+                breakSeconds: _w.breakSeconds,
+                updateWorkout: widget.db.updateWorkout,
                 workoutKey: widget.workoutKey,
                 onPop: _onPop,
                 initiallyOpenSheet: initiallyOpenSheet)));
@@ -118,51 +120,26 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             return null;
           },
         ),
-        elevation: 24,
       ),
     );
     if (mounted) _reloadWorkout();
   }
 
   void _startWorkout() {
+    final settings = SettingsProvider.of(context);
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => TimerScreen(
           e: _w.exercises,
-          player: TimerAudioService(Assets.audioExerciseChange),
+          player: TimerAudioService(Assets.audioExerciseChange, volume: settings.soundVolume),
+          breakSeconds: _w.breakSeconds ?? settings.breakDurationSeconds,
+          countdownSeconds: settings.preWorkoutCountdownSeconds,
+          createStartPlayer: () =>
+              TimerAudioService(Assets.audioWorkoutStart, volume: settings.soundVolume),
         ),
       ),
     );
-  }
-
-  Future<void> _countdownAndStart() async {
-    final countdownSeconds = SettingsProvider.of(context).preWorkoutCountdownSeconds;
-
-    if (countdownSeconds <= 0) {
-      _startWorkout();
-      return;
-    }
-
-    final shouldStart = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CountdownScreen(
-          textSequence: List.generate(
-            countdownSeconds,
-            (i) => (countdownSeconds - i).toString(),
-            growable: false,
-          ),
-          stepDuration: const Duration(seconds: 1),
-          onCompleteAudioPlayer: TimerAudioService(Assets.audioWorkoutStart),
-          fontSize: 50,
-        ),
-      ),
-    );
-
-    if (shouldStart == true && mounted) {
-      _startWorkout();
-    }
   }
 
   @override
@@ -174,88 +151,80 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       );
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-        appBar: AppBar(
-            leading: BackButton(),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            actions: [
-              PopupMenuButton<WorkoutAction>(
-                  offset: Offset.fromDirection(90, 50),
-                  onSelected: (value) async {
-                    switch (value) {
-                      case WorkoutAction.editExercise:
-                        await _goToEditExercises(initiallyOpenSheet: false);
-                        break;
-                      case WorkoutAction.exportWorkout:
-                        var error = await WorkoutBackupService(widget.db).exportWorkout(_w);
-                        if (error != null) {
-                          _showErrorSnackbar(exportErrorMessage(context, error));
-                        }
-                        break;
-                      case WorkoutAction.deleteWorkout:
-                        await _confirmAndDeleteWorkout(widget.workoutKey).then((value) {
-                          if (value) Navigator.pop(context);
-                        });
-                        break;
+        appBar: AppBar(leading: BackButton(), actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_note),
+            tooltip: l10n.editExercisesTitle,
+            onPressed: () => _goToEditExercises(initiallyOpenSheet: false),
+          ),
+          PopupMenuButton<WorkoutAction>(
+              offset: Offset.fromDirection(90, 50),
+              onSelected: (value) async {
+                switch (value) {
+                  case WorkoutAction.exportWorkout:
+                    var error = await WorkoutBackupService(widget.db).exportWorkout(_w);
+                    if (error != null) {
+                      _showErrorSnackbar(exportErrorMessage(context, error));
                     }
-                  },
-                  itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
-                        PopupMenuItem<WorkoutAction>(
-                          child: IconTextItem(
-                            icon: Icons.edit_note,
-                            text: l10n.editExercisesTitle,
-                          ),
-                          value: WorkoutAction.editExercise,
-                        ),
-                        PopupMenuItem<WorkoutAction>(
-                          child: IconTextItem(
-                            icon: Icons.download,
-                            text: l10n.exportMenuItem,
-                          ),
-                          value: WorkoutAction.exportWorkout,
-                        ),
-                        PopupMenuItem<WorkoutAction>(
-                          child: IconTextItem(
-                            icon: Icons.delete,
-                            text: l10n.deleteWorkoutMenuItem,
-                          ),
-                          value: WorkoutAction.deleteWorkout,
-                        ),
-                      ]),
-            ]),
+                    break;
+                  case WorkoutAction.deleteWorkout:
+                    await _confirmAndDeleteWorkout(widget.workoutKey).then((value) {
+                      if (value) Navigator.pop(context);
+                    });
+                    break;
+                }
+              },
+              itemBuilder: (context) => <PopupMenuEntry<WorkoutAction>>[
+
+                    PopupMenuItem<WorkoutAction>(
+                      child: IconTextItem(
+                        icon: Icons.download,
+                        text: l10n.exportMenuItem,
+                      ),
+                      value: WorkoutAction.exportWorkout,
+                    ),
+                    PopupMenuItem<WorkoutAction>(
+                      child: IconTextItem(
+                        icon: Icons.delete,
+                        text: l10n.deleteWorkoutMenuItem,
+                      ),
+                      value: WorkoutAction.deleteWorkout,
+                    ),
+                  ]),
+        ]),
         floatingActionButton: _w.exercises.isEmpty
             ? FloatingActionButton.extended(
-                shape: StadiumBorder(),
                 onPressed: () => _goToEditExercises(initiallyOpenSheet: true),
                 icon: Icon(Icons.add),
                 label: Text(l10n.addExercisesBtn),
               )
             : FloatingActionButton(
-                shape: StadiumBorder(),
                 tooltip: l10n.startWorkoutTooltip,
-                onPressed: _countdownAndStart,
+                onPressed: _startWorkout,
                 child: Icon(Icons.play_arrow),
               ),
         body: Column(children: [
           Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 12),
+            // The right padding is less than that of [StaticExerciseList]
+            // to make the edit icon line up correctly.
+            padding: const EdgeInsets.only(left: 24, right: 8, bottom: 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Flexible(
-                    child: Semantics(
-                      header: true,
-                      child: Text(
-                        _w.name,
-                        maxLines: _kWorkoutNameMaxLines,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontFamily: Assets.fontEthosNova, fontWeight: FontWeight.bold, fontSize: 28),
-                      ),
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      _w.name,
+                      maxLines: _kWorkoutNameMaxLines,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontFamily: Assets.fontEthosNova,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 28),
                     ),
                   ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   tooltip: AppLocalizations.of(context).renameWorkoutTooltip,
@@ -265,7 +234,29 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               ],
             ),
           ),
-          Expanded(child: StaticExerciseList(exercises: _w.exercises)),
+          Expanded(
+              child: SafeArea(
+                  top: false,
+                  child: StaticExerciseList(
+                    exercises: _w.exercises,
+                    header: _w.exercises.length > 1
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              BreakItem(
+                                seconds: _w.breakSeconds ??
+                                    SettingsProvider.of(context).breakDurationSeconds,
+                                isDefault: _w.breakSeconds == null,
+                                leading: const BreakIcon(),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 24),
+                                child: Divider(height: 1),
+                              ),
+                            ],
+                          )
+                        : null,
+                  ))),
         ]));
   }
 }
