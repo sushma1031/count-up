@@ -45,6 +45,19 @@ class _WorkoutProviderState extends State<WorkoutProvider> {
     initAudioPlayer();
     if (widget.countdownSeconds > 0) _countdown = _Countdown.start;
     super.initState();
+    _syncWakeLock();
+  }
+
+  // enable wakelock only while the workout is in progress
+  void _syncWakeLock() {
+    final shouldEnable = !_isWorkoutComplete;
+    if (shouldEnable == _wakeLockEnabled) return;
+    _wakeLockEnabled = shouldEnable;
+    if (shouldEnable) {
+      WakelockPlus.enable();
+    } else {
+      WakelockPlus.disable();
+    }
   }
 
   Future<void> initAudioPlayer() async {
@@ -63,6 +76,7 @@ class _WorkoutProviderState extends State<WorkoutProvider> {
       } else
         _currentIndex++;
     });
+    _syncWakeLock();
   }
 
   void previousExercise(_) {
@@ -77,6 +91,7 @@ class _WorkoutProviderState extends State<WorkoutProvider> {
         _isWorkoutComplete = false;
       }
     });
+    _syncWakeLock();
   }
 
   void restartWorkout() {
@@ -86,6 +101,7 @@ class _WorkoutProviderState extends State<WorkoutProvider> {
       _isWorkoutComplete = false;
       _countdown = _Countdown.anotherRound;
     });
+    _syncWakeLock();
   }
 
   void _endCountdown() => setState(() => _countdown = _Countdown.none);
@@ -102,15 +118,6 @@ class _WorkoutProviderState extends State<WorkoutProvider> {
 
   @override
   Widget build(BuildContext context) {
-    // enable wakelock only in the timer screen
-    if (!_isWorkoutComplete && !_wakeLockEnabled) {
-      WakelockPlus.enable();
-      _wakeLockEnabled = true;
-    } else if (_isWorkoutComplete && _wakeLockEnabled) {
-      WakelockPlus.disable();
-      _wakeLockEnabled = false;
-    }
-
     final l10n = AppLocalizations.of(context);
     final n = widget.countdownSeconds;
     return Center(
