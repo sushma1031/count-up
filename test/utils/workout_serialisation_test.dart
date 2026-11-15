@@ -5,7 +5,7 @@ import 'package:count_up/models/exercise.dart';
 import 'package:count_up/models/workout.dart';
 import 'package:count_up/services/settings_service.dart';
 import 'package:count_up/utils/workout_serialisation.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('JSON export works correctly', () {

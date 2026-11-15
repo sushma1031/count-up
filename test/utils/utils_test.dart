@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:count_up/utils/format.dart';
 import 'package:count_up/utils/validate_exercise.dart';
 import 'package:count_up/models/exercise_draft.dart';
