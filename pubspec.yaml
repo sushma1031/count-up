@@ -17,12 +17,12 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  audioplayers: ^6.4.0
+  audioplayers: ^6.8.1
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   path_provider: ^2.1.5
-  share_plus: ^10.1.2
-  file_picker: ^10.1.9
+  share_plus: ^13.3.1
+  file_picker: ^13.3.3
   intl: ^0.20.2
   wakelock_plus: ^1.4.0
   archive: ^4.0.7

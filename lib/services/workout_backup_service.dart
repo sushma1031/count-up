@@ -18,14 +18,14 @@ class WorkoutBackupService {
   WorkoutBackupService(this.db);
 
   Future<ImportResult> importWorkout() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final picked = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
-    if (result == null) {
+    if (picked == null) {
       return const ImportCancelled();
     }
-    File file = File(result.files.single.path!);
+    File file = File(picked.path!);
     String workoutJson = await file.readAsString();
     return importWorkoutJson(workoutJson);
   }
@@ -64,7 +64,7 @@ class WorkoutBackupService {
       final file = File('${tempDir.path}/$backupFileName.json');
       await file.writeAsString(workoutJson);
 
-      await Share.shareXFiles([XFile(file.path)]);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
       return null;
     } on FileSystemException catch (e) {
       print('File system error: $e');
@@ -94,7 +94,9 @@ class WorkoutBackupService {
     try {
       final file = File('${tempDir.path}/${generateBackupFilename("count-up")}.zip');
       await file.writeAsBytes(zipData);
-      await Share.shareXFiles([XFile(file.path, mimeType: 'application/zip')]);
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(file.path, mimeType: 'application/zip')]),
+      );
       await file.delete();
       return null;
     } on FileSystemException catch (e) {
