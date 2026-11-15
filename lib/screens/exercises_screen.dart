@@ -96,7 +96,6 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     await Navigator.push(
         context,
         MaterialPageRoute<void>(
-            fullscreenDialog: true,
             builder: (_) => EditExercisesScreen(
                 exercises: _w.exercises,
                 breakSeconds: _w.breakSeconds,
