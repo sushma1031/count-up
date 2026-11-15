@@ -151,12 +151,15 @@ class _EditExercisesScreenState extends State<EditExercisesScreen> {
 
   int get _defaultBreakSeconds => SettingsProvider.of(context).breakDurationSeconds;
 
-  Future<void> _editBreak() => showBreakSheet(
-        context,
-        seconds: _breakSeconds,
-        defaultSeconds: _defaultBreakSeconds,
-        onChanged: (seconds) => setState(() => _breakSeconds = seconds),
-      );
+  Future<void> _editBreak() async {
+    final result = await showBreakSheet(
+      context,
+      seconds: _breakSeconds,
+      defaultSeconds: _defaultBreakSeconds,
+    );
+    if (result == null || !mounted) return;
+    setState(() => _breakSeconds = result.seconds);
+  }
 
   Widget _breakRow(BuildContext context) {
     return ListTile(

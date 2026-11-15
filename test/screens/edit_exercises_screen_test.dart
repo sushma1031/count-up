@@ -227,7 +227,7 @@ void main() {
       expect(editor.savedBreak, isNull);
     });
 
-    testWidgets('dismissing the sheet keeps the last picked value', (tester) async {
+    testWidgets('dismissing the sheet discards the picked value', (tester) async {
       final editor = await _EditorHarness(breakSeconds: 30).pump(tester);
 
       await openBreakSheet(tester);
@@ -235,9 +235,9 @@ void main() {
       await tester.tapAt(const Offset(5, 5));
       await tester.pumpAndSettle();
 
-      expect(find.text('15s'), findsOneWidget);
-      await _save(tester);
-      expect(editor.savedBreak, 15);
+      expect(find.text('30s'), findsOneWidget);
+      expect(find.text('15s'), findsNothing);
+      expect(editor.writes, isEmpty);
     });
 
     testWidgets('a change counts as unsaved', (tester) async {

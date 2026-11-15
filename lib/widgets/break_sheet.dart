@@ -6,28 +6,27 @@ import 'package:flutter/material.dart';
 const double _kSheetContentPadding = 20;
 const List<int> _kPresetSeconds = [10, 15, 30];
 
-Future<void> showBreakSheet(
+/// Returns `null` if dismissed without tapping Done.
+/// Otherwise returns the picked break, where `seconds == null` means
+/// "Default" was selected.
+Future<({int? seconds})?> showBreakSheet(
   BuildContext context, {
   required int? seconds,
   required int defaultSeconds,
-  required ValueChanged<int?> onChanged,
 }) {
-  return showModalBottomSheet<void>(
+  return showModalBottomSheet<({int? seconds})>(
     context: context,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (_) =>
-        BreakSheet(seconds: seconds, defaultSeconds: defaultSeconds, onChanged: onChanged),
+    builder: (_) => BreakSheet(seconds: seconds, defaultSeconds: defaultSeconds),
   );
 }
 
 class BreakSheet extends StatefulWidget {
   final int? seconds;
   final int defaultSeconds;
-  final ValueChanged<int?> onChanged;
 
-  const BreakSheet(
-      {super.key, required this.seconds, required this.defaultSeconds, required this.onChanged});
+  const BreakSheet({super.key, required this.seconds, required this.defaultSeconds});
 
   @override
   State<BreakSheet> createState() => _BreakSheetState();
@@ -38,7 +37,6 @@ class _BreakSheetState extends State<BreakSheet> {
 
   void _select(int? seconds) {
     setState(() => _seconds = seconds);
-    widget.onChanged(seconds);
   }
 
   Widget _pill(String label, {required bool selected, required int? seconds}) {
@@ -72,7 +70,7 @@ class _BreakSheetState extends State<BreakSheet> {
                 ),
                 FilledButton(
                   style: FilledButton.styleFrom(visualDensity: VisualDensity(vertical: -1)),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => Navigator.of(context).pop((seconds: _seconds)),
                   child: Text(l10n.doneBtn),
                 ),
               ],
