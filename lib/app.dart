@@ -85,10 +85,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool _hasShownSettingsPersistenceWarning = false;
 
-  Future<void> loadDataWithDelay() async {
-    await widget.db.loadData();
-    await Future.delayed(Duration(seconds: 2));
-  }
 
   void _showSettingsPersistenceWarning(BuildContext context) {
     final settings = SettingsProvider.of(context);
@@ -125,7 +121,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<void>(
-      future: loadDataWithDelay(),
+      future: widget.db.loadData(),
       builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
         final l10n = AppLocalizations.of(context);
         if (snapshot.connectionState != ConnectionState.done) {
