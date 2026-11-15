@@ -243,4 +243,80 @@ void main() {
       expect(find.text('10'), findsOneWidget);
     });
   });
+
+  group('countdown', () {
+    Widget buildWithCountdown(List<Exercise> exercises,
+        {required int countdownSeconds, required MockAudioService startPlayer}) {
+      return MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+              body: WorkoutProvider(
+                  exercises: exercises,
+                  player: MockAudioService(),
+                  countdownSeconds: countdownSeconds,
+                  createStartPlayer: () => startPlayer)));
+    }
+
+    // Each countdown step restarts its animation on the following frame, so
+    // time has to advance in small frames rather than a single big jump.
+    Future<void> pumpUntilFound(WidgetTester tester, Finder finder) async {
+      for (var i = 0; i < 100 && finder.evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    testWidgets('runs before the first exercise', (WidgetTester tester) async {
+      final startPlayer = MockAudioService();
+      await tester.pumpWidget(buildWithCountdown(exercises,
+          countdownSeconds: 2, startPlayer: startPlayer));
+
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('Plank'), findsNothing);
+      expect(startPlayer.configured, true);
+      expect(startPlayer.status, AudioStatus.stopped);
+
+      await pumpUntilFound(tester, find.text('Plank'));
+
+      expect(find.text('Plank'), findsOneWidget);
+      expect(find.text('6'), findsOneWidget);
+      expect(startPlayer.status, AudioStatus.playing);
+    });
+
+    testWidgets('is skipped when set to 0', (WidgetTester tester) async {
+      final startPlayer = MockAudioService();
+      await tester.pumpWidget(buildWithCountdown(exercises,
+          countdownSeconds: 0, startPlayer: startPlayer));
+
+      expect(find.text('Plank'), findsOneWidget);
+      expect(find.text('6'), findsOneWidget);
+      expect(startPlayer.configured, false);
+      expect(startPlayer.status, AudioStatus.stopped);
+    });
+
+    testWidgets('Repeat shows the another round countdown, then restarts',
+        (WidgetTester tester) async {
+      final startPlayer = MockAudioService();
+      await tester.pumpWidget(buildWithCountdown(
+          [DurationExercise('Plank', 2)],
+          countdownSeconds: 0,
+          startPlayer: startPlayer));
+      await tester.pump(Duration(seconds: 3));
+      await tester.pump();
+      expect(find.byType(WorkoutComplete), findsOneWidget);
+
+      await tester.tap(find.text('Repeat'));
+      await tester.pump();
+
+      expect(find.byType(WorkoutComplete), findsNothing);
+      expect(find.text('Get'), findsOneWidget);
+      expect(find.text('Plank'), findsNothing);
+
+      await pumpUntilFound(tester, find.text('Plank'));
+
+      expect(find.text('Plank'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      expect(startPlayer.status, AudioStatus.playing);
+    });
+  });
 }

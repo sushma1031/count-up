@@ -1,31 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:count_up/screens/countdown_screen.dart';
-import 'package:count_up/services/timer_audio_service.dart';
-import 'package:count_up/state/settings_provider.dart';
 import 'package:count_up/utils/assets.dart';
 import 'package:count_up/gen/l10n/app_localizations.dart';
 
 class WorkoutComplete extends StatelessWidget {
   final void Function() restartWorkout;
   final bgImage = const AssetImage(Assets.imageBGDesign1);
-
-  Future<void> countdownAndRestart(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final volume = SettingsProvider.of(context).soundVolume;
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CountdownScreen(
-            message: l10n.anotherRoundMessage,
-            textSequence: [l10n.countdownGet, l10n.countdownSet, l10n.countdownGo],
-            onCompleteAudioPlayer: TimerAudioService(Assets.audioWorkoutStart, volume: volume),
-            fontSize: 40,
-          ),
-        )).then((value) {
-      if (value == true) restartWorkout();
-    });
-  }
 
   const WorkoutComplete({super.key, required this.restartWorkout});
   @override
@@ -63,9 +43,7 @@ class WorkoutComplete extends StatelessWidget {
                 )),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
               FilledButton(
-                onPressed: () async {
-                  await countdownAndRestart(context);
-                },
+                onPressed: restartWorkout,
                 child: Text(l10n.repeatBtn),
               ),
               FilledButton(

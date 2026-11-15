@@ -1,5 +1,4 @@
 import 'package:count_up/models/workout.dart';
-import 'package:count_up/screens/countdown_screen.dart';
 import 'package:count_up/screens/edit_exercises_screen.dart';
 import 'package:count_up/screens/timer_screen.dart';
 import 'package:count_up/services/storage_service.dart';
@@ -135,40 +134,12 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           e: _w.exercises,
           player: TimerAudioService(Assets.audioExerciseChange, volume: settings.soundVolume),
           breakSeconds: _w.breakSeconds ?? settings.breakDurationSeconds,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _countdownAndStart() async {
-    final settings = SettingsProvider.of(context);
-    final countdownSeconds = settings.preWorkoutCountdownSeconds;
-
-    if (countdownSeconds <= 0) {
-      _startWorkout();
-      return;
-    }
-
-    final shouldStart = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CountdownScreen(
-          textSequence: List.generate(
-            countdownSeconds,
-            (i) => (countdownSeconds - i).toString(),
-            growable: false,
-          ),
-          stepDuration: const Duration(seconds: 1),
-          onCompleteAudioPlayer:
+          countdownSeconds: settings.preWorkoutCountdownSeconds,
+          createStartPlayer: () =>
               TimerAudioService(Assets.audioWorkoutStart, volume: settings.soundVolume),
-          fontSize: 50,
         ),
       ),
     );
-
-    if (shouldStart == true && mounted) {
-      _startWorkout();
-    }
   }
 
   @override
@@ -229,7 +200,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               )
             : FloatingActionButton(
                 tooltip: l10n.startWorkoutTooltip,
-                onPressed: _countdownAndStart,
+                onPressed: _startWorkout,
                 child: Icon(Icons.play_arrow),
               ),
         body: Column(children: [
